@@ -329,13 +329,14 @@
         <span id="logoInfo" class="hint"></span>
       </div>
     </div>
-    <button class="primary" id="genBtn" disabled>Generar PowerPoint y Excel</button>
+    <button class="primary" id="genBtn" disabled>Generar PowerPoint, PDF y Excel</button>
     <div id="log"></div>
     <div id="result">
       <h3>Listo</h3>
       <p id="resultSummary"></p>
       <table id="resultTable"></table>
       <a id="downloadPng" download>Descargar propuesta (PowerPoint)</a>
+      <a id="downloadPdf" download style="display:none">Descargar propuesta (PDF)</a>
       <a id="downloadLink" download>Descargar Excel de cálculo</a>
     </div>
   </div>
@@ -343,6 +344,265 @@
   <footer>Funciona sin conexión a servidor propio — el procesamiento del PDF y la generación de archivos ocurren en tu equipo.</footer>
 </div>
 
+<script>
+/* PDFX: dibuja en canvas las hojas que se arman con PptxGenJS y las junta en un PDF (sin servidor). */
+(function(){
+  if (typeof PptxGenJS === 'undefined' || window.PDFX) return;
+  const DPI = 150;
+  const FONT = 'Calibri, Carlito, "Segoe UI", Arial, sans-serif';
+
+  // --- Grabadora: registra lo que cada hoja recibe, sin cambiar el comportamiento del PowerPoint ---
+  const origAdd = PptxGenJS.prototype.addSlide;
+  PptxGenJS.prototype.addSlide = function(){
+    const s = origAdd.apply(this, arguments);
+    const rec = [];
+    ['addShape','addText','addTable','addImage'].forEach(function(n){
+      const o = s[n];
+      s[n] = function(){
+        const a = Array.prototype.slice.call(arguments);
+        try { rec.push([n].concat(a.map(function(v){ return (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v; }))); } catch (e) {}
+        return o.apply(this, arguments);
+      };
+    });
+    (this.__pdfx = this.__pdfx || []).push(rec);
+    return s;
+  };
+
+  const px = function(inches){ return inches * DPI; };
+  const ptpx = function(pt){ return pt / 72 * DPI; };
+  const col = function(c, d){ return '#' + String(c || d || '000000').replace('#',''); };
+
+  function loadImg(src){
+    return new Promise(function(res){
+      const im = new Image();
+      im.onload = function(){ res(im); };
+      im.onerror = function(){ res(null); };
+      im.src = /^data:/.test(src) ? src : 'data:' + src;
+    });
+  }
+
+  function fontStr(r, size){
+    return (r.italic ? 'italic ' : '') + (r.bold ? 'bold ' : '') + ptpx(size) + 'px ' + FONT;
+  }
+
+  // Convierte el contenido de un texto en párrafos de "runs" con sus estilos heredados
+  function toParas(text, o){
+    const base = { bold: o.bold, italic: o.italic, color: o.color, size: o.fontSize || 12, cs: o.charSpacing };
+    let runs = [];
+    if (typeof text === 'string') runs = [{ text: text, options: {} }];
+    else if (Array.isArray(text)) runs = text.map(function(t){ return typeof t === 'string' ? { text: t, options: {} } : t; });
+    const paras = [[]];
+    runs.forEach(function(r){
+      const ro = r.options || {};
+      const st = {
+        bold: ro.bold !== undefined ? ro.bold : base.bold, italic: ro.italic !== undefined ? ro.italic : base.italic,
+        color: ro.color || base.color || '000000', size: ro.fontSize || base.size, cs: ro.charSpacing !== undefined && ro.charSpacing !== null ? ro.charSpacing : base.cs
+      };
+      const parts = String(r.text === undefined ? '' : r.text).split('\n');
+      parts.forEach(function(p, i){
+        if (i > 0) paras.push([]);
+        if (p !== '') paras[paras.length - 1].push(Object.assign({ text: p }, st));
+      });
+      if (ro.breakLine) paras.push([]);
+    });
+    return paras;
+  }
+
+  // Parte los párrafos en líneas que caben en el ancho (maxW en px). wrap=false: sin partir.
+  function layout(ctx, paras, maxW, wrap, defSize){
+    const lines = [];
+    paras.forEach(function(p){
+      if (!p.length){ lines.push({ words: [], w: 0, size: defSize }); return; }
+      let cur = [], curW = 0;
+      const flush = function(){
+        let size = 0; cur.forEach(function(w){ if (w.size > size) size = w.size; });
+        lines.push({ words: cur, w: curW, size: size || defSize }); cur = []; curW = 0;
+      };
+      p.forEach(function(r){
+        ctx.font = fontStr(r, r.size);
+        ctx.letterSpacing = r.cs ? ptpx(r.cs) + 'px' : '0px';
+        const toks = r.text.match(/\S+\s*|\s+/g) || [];
+        toks.forEach(function(t){
+          const w = ctx.measureText(t).width;
+          const tw = ctx.measureText(t.replace(/\s+$/, '')).width;
+          if (wrap && cur.length && curW + tw > maxW + 0.5) flush();
+          cur.push({ text: t, w: w, tw: tw, style: r, size: r.size });
+          curW += w;
+        });
+      });
+      flush();
+    });
+    return lines;
+  }
+
+  function drawText(ctx, text, o){
+    const x = px(o.x), y = px(o.y), w = px(o.w), h = px(o.h);
+    ctx.save();
+    if (o.rotate){ ctx.translate(x + w/2, y + h/2); ctx.rotate(o.rotate * Math.PI / 180); ctx.translate(-(x + w/2), -(y + h/2)); }
+    if (o.fill && o.fill.color){ ctx.fillStyle = col(o.fill.color); ctx.fillRect(x, y, w, h); }
+    if (o.line && o.line.color && o.line.type !== 'none'){ ctx.strokeStyle = col(o.line.color); ctx.lineWidth = ptpx(o.line.width || o.line.pt || 1); ctx.strokeRect(x, y, w, h); }
+    if (text === null || text === undefined || text === ''){ ctx.restore(); return; }
+    let m = o.margin; if (m === undefined || m === null) m = 0;
+    let mt, mr, mb, ml;
+    if (Array.isArray(m)){ mt = m[0]; mr = m[1]; mb = m[2]; ml = m[3]; } else { mt = mr = mb = ml = m; }
+    mt = ptpx(mt); mr = ptpx(mr); mb = ptpx(mb); ml = ptpx(ml);
+    const innerW = w - ml - mr, innerH = h - mt - mb;
+    const paras = toParas(text, o);
+    const wrap = o.wrap !== false;
+    const lines = layout(ctx, paras, innerW, wrap, o.fontSize || 12);
+    const mult = o.lineSpacingMultiple || 1;
+    const lh = function(L){ return o.lineSpacing ? ptpx(o.lineSpacing) : ptpx(L.size) * 1.2 * mult; };
+    let total = 0; lines.forEach(function(L){ total += lh(L); });
+    let top = y + mt;
+    if (o.valign === 'bottom' || o.valign === 'b') top = y + h - mb - total;
+    else if (o.valign === 'top' || o.valign === 't') top = y + mt;
+    else top = y + mt + (innerH - total) / 2;
+    const align = o.align || 'left';
+    ctx.textBaseline = 'alphabetic';
+    lines.forEach(function(L){
+      const l = lh(L);
+      let lx = x + ml;
+      const lw = L.words.reduce(function(a, wd, i){ return a + (i === L.words.length - 1 ? wd.tw : wd.w); }, 0);
+      if (align === 'center') lx = x + ml + (innerW - lw) / 2;
+      else if (align === 'right') lx = x + ml + innerW - lw;
+      const base = top + l / 2 + ptpx(L.size) * 0.32;
+      let cx = lx;
+      L.words.forEach(function(wd, i){
+        ctx.font = fontStr(wd.style, wd.size);
+        ctx.letterSpacing = wd.style.cs ? ptpx(wd.style.cs) + 'px' : '0px';
+        ctx.fillStyle = col(wd.style.color);
+        ctx.fillText(wd.text.replace(/\s+$/, ''), cx, base);
+        cx += wd.w;
+      });
+      top += l;
+    });
+    ctx.restore();
+  }
+
+  function drawShape(ctx, name, o){
+    const x = px(o.x), y = px(o.y), w = px(o.w || 0), h = px(o.h || 0);
+    ctx.save();
+    const hasLine = o.line && o.line.type !== 'none' && o.line.color;
+    if (name === 'line'){
+      if (!hasLine){ ctx.restore(); return; }
+      ctx.strokeStyle = col(o.line.color); ctx.lineWidth = ptpx(o.line.width || 1);
+      if (o.line.dashType && o.line.dashType !== 'solid'){ const d = ptpx(o.line.width || 1); ctx.setLineDash([d * 4, d * 3]); }
+      let x1 = x, y1 = y, x2 = x + w, y2 = y + h;
+      if (o.flipV){ y1 = y + h; y2 = y; }
+      if (o.flipH){ x1 = x + w; x2 = x; }
+      ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    } else {
+      ctx.beginPath();
+      if (name === 'ellipse') ctx.ellipse(x + w/2, y + h/2, w/2, h/2, 0, 0, Math.PI * 2);
+      else if (name === 'roundRect'){ const r = Math.min(w, h) * (o.rectRadius || 0.1); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+      else ctx.rect(x, y, w, h);
+      if (o.fill && o.fill.color){ ctx.globalAlpha = o.fill.transparency ? 1 - o.fill.transparency / 100 : 1; ctx.fillStyle = col(o.fill.color); ctx.fill(); ctx.globalAlpha = 1; }
+      if (hasLine){ ctx.strokeStyle = col(o.line.color); ctx.lineWidth = ptpx(o.line.width || 1); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
+
+  function drawTable(ctx, rows, o){
+    const x0 = px(o.x), y0 = px(o.y);
+    const colW = (o.colW || []).map(px);
+    const rowH = Array.isArray(o.rowH) ? o.rowH.map(px) : rows.map(function(){ return px(o.rowH || 0.3); });
+    const dm = o.margin !== undefined ? o.margin : [0.05, 0.1, 0.05, 0.1];
+    let y = y0;
+    rows.forEach(function(row, ri){
+      let x = x0;
+      row.forEach(function(cell, ci){
+        const c = typeof cell === 'string' ? { text: cell, options: {} } : cell;
+        const co = Object.assign({}, c.options || {});
+        const cw = colW[ci], ch = rowH[ri];
+        if (co.fill && co.fill.color){ ctx.fillStyle = col(co.fill.color); ctx.fillRect(x, y, cw, ch); }
+        const bd = co.border || o.border;
+        if (bd){
+          const b = Array.isArray(bd) ? bd[0] : bd;
+          if (b && b.type !== 'none' && b.color){
+            ctx.strokeStyle = col(b.color); ctx.lineWidth = ptpx(b.pt || 1);
+            ctx.strokeRect(x, y, cw, ch);
+          }
+        }
+        const mm = co.margin !== undefined ? co.margin : dm;
+        const m = Array.isArray(mm) ? mm : [mm, mm, mm, mm];
+        // los márgenes de tabla están en pulgadas -> los paso a puntos para reutilizar drawText
+        const mpt = m.map(function(v){ return v * 72; });
+        drawText(ctx, c.text, {
+          x: x / DPI, y: y / DPI, w: cw / DPI, h: ch / DPI, margin: mpt,
+          fontSize: co.fontSize || o.fontSize || 12, bold: co.bold, italic: co.italic, color: co.color || o.color || '000000',
+          align: co.align || 'left', valign: co.valign || 'middle', wrap: true
+        });
+        x += cw;
+      });
+      y += rowH[ri];
+    });
+  }
+
+  async function render(rec){
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(8.5 * DPI); cv.height = Math.round(11 * DPI);
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cv.width, cv.height);
+    for (const it of rec){
+      const kind = it[0];
+      if (kind === 'addImage'){
+        const o = it[1];
+        const im = await loadImg(o.data || o.path || '');
+        if (im){ ctx.drawImage(im, px(o.x), px(o.y), px(o.w), px(o.h)); }
+      } else if (kind === 'addShape'){
+        drawShape(ctx, it[1], it[2] || {});
+      } else if (kind === 'addText'){
+        const text = it[1], o = it[2] || {};
+        if (o.shape && o.shape !== 'rect' && (o.fill || o.line)) drawShape(ctx, o.shape, o);
+        drawText(ctx, text, o);
+      } else if (kind === 'addTable'){
+        drawTable(ctx, it[1], it[2] || {});
+      }
+    }
+    return cv;
+  }
+
+  // --- PDF mínimo: una imagen JPEG por hoja, tamaño carta ---
+  function b64ToBytes(b64){ const s = atob(b64); const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function buildPdf(jpegs, wPx, hPx){
+    const enc = new TextEncoder(); const parts = []; const offs = []; let len = 0;
+    const push = function(d){ const b = typeof d === 'string' ? enc.encode(d) : d; parts.push(b); len += b.length; };
+    const obj = function(n){ offs[n] = len; };
+    const n = jpegs.length;
+    push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+    obj(1); push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    const kids = []; for (let i = 0; i < n; i++) kids.push((3 + i * 3) + ' 0 R');
+    obj(2); push('2 0 obj\n<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + n + ' >>\nendobj\n');
+    for (let i = 0; i < n; i++){
+      const pg = 3 + i * 3, ct = pg + 1, im = pg + 2;
+      obj(pg); push(pg + ' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 ' + im + ' 0 R >> >> /Contents ' + ct + ' 0 R >>\nendobj\n');
+      const cs = 'q 612 0 0 792 0 0 cm /Im0 Do Q';
+      obj(ct); push(ct + ' 0 obj\n<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream\nendobj\n');
+      obj(im); push(im + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + wPx + ' /Height ' + hPx + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpegs[i].length + ' >>\nstream\n');
+      push(jpegs[i]); push('\nendstream\nendobj\n');
+    }
+    const total = 3 + n * 3; const xref = len;
+    let x = 'xref\n0 ' + total + '\n0000000000 65535 f \n';
+    for (let i = 1; i < total; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+    push(x + 'trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  window.PDFX = {
+    async toBlob(deck){
+      const recs = deck.__pdfx || [];
+      const jpegs = []; let w = 0, h = 0;
+      for (const rec of recs){
+        const cv = await render(rec);
+        w = cv.width; h = cv.height;
+        jpegs.push(b64ToBytes(cv.toDataURL('image/jpeg', 0.9).split(',')[1]));
+      }
+      return buildPdf(jpegs, w, h);
+    }
+  };
+})();
+
+</script>
 <script>
 // --- Moneda de la cotización: UDIS o dólares ---
 const MONEDAS = {
@@ -992,13 +1252,13 @@ async function generar(){
   if (!(udi > 0)){
     log(`Captura ${CUR.code === 'USD' ? 'el tipo de cambio del dólar' : 'el valor del UDI'} antes de generar.`, true);
     genBtn.disabled = false;
-    genBtn.textContent = 'Generar PowerPoint y Excel';
+    genBtn.textContent = 'Generar PowerPoint, PDF y Excel';
     return;
   }
   if (isNaN(inflacion)){
     log('Captura la variación/inflación anual asumida (puede ser 0).', true);
     genBtn.disabled = false;
-    genBtn.textContent = 'Generar PowerPoint y Excel';
+    genBtn.textContent = 'Generar PowerPoint, PDF y Excel';
     return;
   }
 
@@ -1030,7 +1290,7 @@ async function generar(){
   if (planes.length === 0){
     log('No se generó nada — corrige los PDF marcados con error.', true);
     genBtn.disabled = false;
-    genBtn.textContent = 'Generar PowerPoint y Excel';
+    genBtn.textContent = 'Generar PowerPoint, PDF y Excel';
     return;
   }
 
@@ -1075,13 +1335,20 @@ async function generar(){
   const pngLink = document.getElementById('downloadPng');
   pngLink.href = pngUrl;
   pngLink.setAttribute('download', `Propuesta_${clientName || 'cliente'}.pptx`);
+  const pdfLink = document.getElementById('downloadPdf');
+  try {
+    const pdfBlob = await window.PDFX.toBlob(deck);
+    pdfLink.href = URL.createObjectURL(pdfBlob);
+    pdfLink.setAttribute('download', pngLink.getAttribute('download').replace(/\.pptx$/, '.pdf'));
+    pdfLink.style.display = '';
+  } catch (e) { pdfLink.style.display = 'none'; }
   const link = document.getElementById('downloadLink');
   link.href = url;
   link.setAttribute('download', filename);
   resultEl.style.display = 'block';
 
   genBtn.disabled = false;
-  genBtn.textContent = 'Generar PowerPoint y Excel';
+  genBtn.textContent = 'Generar PowerPoint, PDF y Excel';
 }
 
 function log(msg, isErr){
