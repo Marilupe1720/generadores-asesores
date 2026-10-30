@@ -876,8 +876,22 @@ function parseText(text, filename){
   const rowRe = formatoB
     ? new RegExp('(?<![\\d,.])(\\d{1,2})' + SP + '(\\d{1,2})' + SP + N + SP + N + SP + N + SP + N + SP + '([\\d.]+)[ \\t]*%' + SP + N, 'g')
     : new RegExp('(?<![\\d,.])(\\d{1,2})' + SP + '(\\d{1,2})' + SP + N + SP + N + SP + N + SP + N + SP + N + SP + '([\\d.]+)[ \\t]*%', 'g');
+  // Formato C (Protección | Año | Edad | Prima | Vencimientos | Prima Acum. | Recuperación | %)
+  const rowReC = new RegExp('(?<![\\d,.])' + N + SP + '(\\d{1,2})' + SP + '(\\d{1,2})' + SP + N + SP + N + SP + N + SP + N + SP + '([\\d.]+)[ \\t]*%', 'g');
+  const nC = data.plazo_cobertura_anos;
+  const pC = [], eC = [], prC = [], vC = [], aC = [], rC = [];
+  let rc;
+  while ((rc = rowReC.exec(text)) !== null){
+    const i = parseInt(rc[2], 10) - 1;
+    pC[i] = num(rc[1]); eC[i] = parseInt(rc[3], 10); prC[i] = num(rc[4]); vC[i] = num(rc[5]); aC[i] = num(rc[6]); rC[i] = num(rc[7]);
+  }
+  let usaC = true;
+  for (let i = 0; i < nC; i++){ if (rC[i] === undefined) { usaC = false; break; } }
+  if (usaC){
+    for (let i = 0; i < nC; i++){ prots[i] = pC[i]; edades[i] = eC[i]; primas[i] = prC[i]; venc[i] = vC[i]; acum[i] = aC[i]; recup[i] = rC[i]; }
+  }
   let r;
-  while ((r = rowRe.exec(text)) !== null){
+  while (!usaC && (r = rowRe.exec(text)) !== null){
     const i = parseInt(r[1], 10) - 1;
     edades[i] = parseInt(r[2], 10);
     if (!formatoB) prots[i] = num(r[3]);
