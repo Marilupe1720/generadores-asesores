@@ -395,7 +395,7 @@ footer::after{
     <div class="cols-help" style="margin:14px 0 16px;padding:12px 16px;border-left:4px solid #578795;background:rgba(87,135,149,.10);border-radius:6px;font-size:.88rem;line-height:1.5;">
       <strong>Columnas que debe traer cada cotización (7)</strong><br>En Solucionline, antes de generar el PDF, usa <em>Selección de columnas</em> en la tabla de Valores Garantizados y deja <strong>solo estas columnas, en este orden</strong>:
       <ol style="margin:8px 0 6px 20px;padding:0;"><li>Año Póliza</li><li>Edad Real</li><li>Protección Total</li><li>Prima Anual</li><li>Prima Anual Acumulada</li><li><strong>Recuperación Total</strong></li><li>Porcentaje de Recuperación Total</li></ol>
-      <span>Una cotización por PDF (de 1 a 3 opciones de protección). Si falta alguna columna o cambia el orden, la herramienta lo avisa y no genera el archivo.</span>
+      <span>Una cotización por PDF (de 1 a 3 opciones de protección). También funciona con la tabla estándar de Solucionline (Año, Año Póliza, Edad Real, Prima Anual, Valor en Efectivo, Recuperación Total y Porcentaje). Si falta alguna columna, la herramienta lo avisa y no genera el archivo.</span>
     </div>
     <div id="dropzone">
       <p><strong>Suelta los PDF aquí</strong> o haz clic para elegirlos</p>
@@ -889,6 +889,22 @@ function parseText(text, filename){
   const intentos = tieneAcumulada ? [{k: 5, idx: 6}, {k: 4, idx: 6}] : [{k: 4, idx: 5}];
   let rowMatch, last = null, valorEfectivoIdx = 5;
   const serie = [];
+  // Formato estándar de Solucionline (sin seleccionar columnas): Año, Año Póliza, Edad Real, Prima Anual, Valor en Efectivo, Recuperación Total, %
+  if (/Año\s+Año\s+P[oó]liza/i.test(text) && !tieneAcumulada){
+    const re = new RegExp('(?<![\\d,.])(20\\d{2})' + SP + '(\\d{1,3})' + SP + '(\\d{1,3})' + (SP + N).repeat(3) + SP + '([\\d.]+)[ \\t]*%', 'g');
+    let lm = null, rm;
+    while ((rm = re.exec(text)) !== null){ lm = rm; serie[parseInt(rm[2], 10) - 1] = num(rm[6]); }
+    if (lm){
+      for (let i = 0; i < data.plazo_cobertura_anos; i++){
+        if (serie[i] === undefined) throw new Error(`La tabla de Valores Garantizados está incompleta (falta el año ${i + 1}).`);
+      }
+      data.ultimo_anio = parseInt(lm[2], 10);
+      data.ultima_edad = parseInt(lm[3], 10);
+      data.valor_efectivo_final = num(lm[6]);
+      data.serie_valor_efectivo = serie;
+      return data;
+    }
+  }
   for (const it of intentos){
     const rowRe = mk(it.k);
     const tmp = [];
