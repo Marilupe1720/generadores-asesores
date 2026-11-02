@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generador presentación GMM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bosque:#1F3E43;--merlot:#5B2C36;--camel:#B08C6A;--fondo:#FBFAF7;--tinta:#22302F;--suave:#6B7775;--linea:#E4E0D8}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:var(--tinta);font-family:"Jost","Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:24px 12px 30px}
+header{text-align:center;padding:6px 0 18px}
+.eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--camel);font-weight:500}
+h1{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-weight:600;font-size:44px;line-height:1.05;margin:8px 0;color:var(--bosque)}
+.sub{margin:0 auto;max-width:620px;color:var(--suave);font-size:16px;line-height:1.5}
+.steps{display:flex;gap:8px;margin:0 0 14px}
+.step{flex:1;display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--linea);border-radius:12px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:var(--suave)}
+.step .n{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--linea);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+.step b{display:block;font-size:14px;color:var(--bosque);font-weight:600;line-height:1.2}
+.step span.t{font-size:12px}
+.step.on{border-color:var(--bosque);box-shadow:0 0 0 1px var(--bosque)}
+.step.on .n{background:var(--bosque);color:#fff;border-color:var(--bosque)}
+.step.done .n{background:var(--camel);color:#fff;border-color:var(--camel)}
+.step.lock{opacity:.5;cursor:not-allowed}
+@media(max-width:620px){.steps{flex-direction:column}h1{font-size:36px}}
+.msg{display:none;margin:0 0 12px;padding:10px 14px;border-radius:10px;background:#FBF1E3;border:1px solid #E7D2B0;color:#7A5A2B;font-size:14px}
+.next{display:none;margin:14px 0 0;padding:16px;border-radius:12px;background:var(--bosque);color:#fff;text-align:center}
+.next p{margin:0 0 10px;font-size:15px;line-height:1.45}
+.next button{padding:12px 22px;border:0;border-radius:10px;background:var(--camel);color:#fff;font:inherit;font-size:16px;font-weight:500;cursor:pointer}
+.tip{margin:0 0 12px;padding:12px 14px;border-left:4px solid var(--camel);background:rgba(176,140,106,.13);border-radius:8px;font-size:14px;line-height:1.5}
+.frames iframe{display:none;width:100%;border:0;background:transparent}
+.frames iframe.on{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Herramientas del Asesor</div>
+  <h1>Generador presentación GMM</h1>
+  <p class="sub">Crea la presentación de Gastos Médicos Mayores en tres pasos. Primero preparas la red hospitalaria y el resumen de Condiciones Generales de tu cliente; con ellos listos, armas la propuesta final.</p>
+</header>
+<div class="steps" id="steps">
+  <button class="step on" data-s="1"><div class="n">1</div><div><b>Red hospitalaria</b><span class="t">Ordena el directorio</span></div></button>
+  <button class="step lock" data-s="2"><div class="n">2</div><div><b>Condiciones Generales</b><span class="t">Ponle tu nombre</span></div></button>
+  <button class="step lock" data-s="3"><div class="n">3</div><div><b>Propuesta GMM</b><span class="t">Presentación final</span></div></button>
+</div>
+<div class="msg" id="msg"></div>
+<div class="tip" id="tip3" style="display:none"><b>Antes de generar:</b> sube tus dos PDF a la carpeta de tu cliente en Drive, copia cada vínculo y pégalo en los campos de “Vínculos de la propuesta”. Si los dejas vacíos, se usan los vínculos por defecto.</div>
+<div class="frames" id="frames">
+  <iframe id="f1" class="on" title="Red hospitalaria" scrolling="no" style="height:900px"></iframe>
+  <iframe id="f2" title="Condiciones Generales" scrolling="no" style="height:900px"></iframe>
+  <iframe id="f3" title="Propuesta GMM" scrolling="no" style="height:1400px"></iframe>
+</div>
+<div class="next" id="next"><p id="nextTxt"></p><button id="nextBtn"></button></div>
+</div>
+<script>
+const SRC={1:'generador_red_hospitalaria_sitio.html',2:'generador_condiciones_generales_sitio.html',3:'generador_gmm_propuesta_sitio.html'};
+const $=id=>document.getElementById(id);
+let cur=1, done={1:false,2:false,3:false}, loaded={};
+try{const g=JSON.parse(sessionStorage.getItem('gmm_steps')||'{}');if(g.d){done={...done,...g.d}}}catch(e){}
+const unlocked=s=>s===1||(s===2&&done[1])||(s===3&&done[1]&&done[2]);
+function render(){
+  document.querySelectorAll('.step').forEach(b=>{const s=+b.dataset.s;
+    b.classList.toggle('on',s===cur);b.classList.toggle('done',!!done[s]&&s!==cur);b.classList.toggle('lock',!unlocked(s));
+    b.querySelector('.n').textContent=(done[s]&&s!==cur)?'✓':s;});
+  [1,2,3].forEach(s=>{const f=$('f'+s);f.classList.toggle('on',s===cur);if(s===cur&&!loaded[s]){f.src=SRC[s];loaded[s]=1}});
+  $('tip3').style.display=cur===3?'block':'none';
+  const nx=$('next');
+  if(cur<3&&done[cur]){nx.style.display='block';
+    $('nextTxt').textContent=cur===1?'Tu red hospitalaria está lista. Sube el PDF a la carpeta de tu cliente en Drive y continúa con el resumen de Condiciones Generales.':'Tu resumen de Condiciones Generales está listo. Sube el PDF a Drive y continúa con la propuesta final.';
+    $('nextBtn').textContent=cur===1?'Continuar al paso 2':'Continuar al paso 3';
+  } else nx.style.display='none';
+  try{sessionStorage.setItem('gmm_steps',JSON.stringify({d:done}))}catch(e){}
+  sendH();
+}
+function go(s){
+  if(!unlocked(s)){const m=$('msg');m.style.display='block';m.textContent=s===2?'Primero termina el paso 1: genera y descarga tu red hospitalaria.':'Primero termina los pasos 1 y 2: descarga tu red hospitalaria y tu resumen de Condiciones Generales.';setTimeout(()=>m.style.display='none',4000);return}
+  $('msg').style.display='none';cur=s;render();window.scrollTo({top:0,behavior:'smooth'});try{parent.postMessage({gmm:'top'},'*')}catch(e){}
+}
+document.querySelectorAll('.step').forEach(b=>b.onclick=()=>go(+b.dataset.s));
+$('nextBtn').onclick=()=>go(cur+1);
+window.addEventListener('message',e=>{
+  const d=e.data;if(!d||!d.gmm)return;
+  if(d.gmm==='done'&&d.step){done[d.step]=true;render()}
+  if(d.gmm==='height'){[1,2,3].forEach(s=>{if($('f'+s).contentWindow===e.source)$('f'+s).style.height=(d.h+4)+'px'});setTimeout(sendH,50)}
+});
+function sendH(){try{parent.postMessage({gmm:'height',h:document.documentElement.scrollHeight},'*')}catch(e){}}
+render();
+if(window.ResizeObserver)new ResizeObserver(sendH).observe(document.body);
+</script>
+</body>
+</html>
