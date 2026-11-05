@@ -267,7 +267,7 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Beau+Rivage&family=Cormorant+Garamond:wght@500&family=Jost:wght@400;500&family=Julius+Sans+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Beau+Rivage&family=Cormorant+Garamond:wght@500&family=Jost:wght@400;500;600&family=Julius+Sans+One&display=swap" rel="stylesheet">
 <style id="tema-legado">
 /* ===== Tema Legado: Merlot & Bosque (guía de diseño de Diseñadores de Legado) ===== */
 :root{
@@ -507,12 +507,12 @@ footer::after{
   }
 
   function fontStr(r, size){
-    return (r.italic ? 'italic ' : '') + (r.bold ? 'bold ' : '') + ptpx(size) + 'px ' + FONT;
+    return (r.italic ? 'italic ' : '') + (r.bold ? 'bold ' : '') + ptpx(size) + 'px ' + (r.pdfFont ? '"' + r.pdfFont + '", ' : '') + FONT;
   }
 
   // Convierte el contenido de un texto en párrafos de "runs" con sus estilos heredados
   function toParas(text, o){
-    const base = { bold: o.bold, italic: o.italic, color: o.color, size: o.fontSize || 12, cs: o.charSpacing };
+    const base = { bold: o.bold, italic: o.italic, color: o.color, size: o.fontSize || 12, cs: o.charSpacing, pdfFont: o.pdfFont };
     let runs = [];
     if (typeof text === 'string') runs = [{ text: text, options: {} }];
     else if (Array.isArray(text)) runs = text.map(function(t){ return typeof t === 'string' ? { text: t, options: {} } : t; });
@@ -521,7 +521,7 @@ footer::after{
       const ro = r.options || {};
       const st = {
         bold: ro.bold !== undefined ? ro.bold : base.bold, italic: ro.italic !== undefined ? ro.italic : base.italic,
-        color: ro.color || base.color || '000000', size: ro.fontSize || base.size, cs: ro.charSpacing !== undefined && ro.charSpacing !== null ? ro.charSpacing : base.cs
+        pdfFont: ro.pdfFont || base.pdfFont, color: ro.color || base.color || '000000', size: ro.fontSize || base.size, cs: ro.charSpacing !== undefined && ro.charSpacing !== null ? ro.charSpacing : base.cs
       };
       const parts = String(r.text === undefined ? '' : r.text).split('\n');
       parts.forEach(function(p, i){
@@ -664,6 +664,7 @@ footer::after{
   }
 
   async function render(rec){
+    try { await Promise.all(['400','500','600'].map(function(w){ return document.fonts.load(w + ' 20px "Jost"'); })); } catch (e) {}
     const cv = document.createElement('canvas');
     cv.width = Math.round(8.5 * DPI); cv.height = Math.round(11 * DPI);
     const ctx = cv.getContext('2d');
@@ -746,7 +747,7 @@ const MONEDAS = {
     excelNote2:'Proyección con la variación anual del tipo de cambio capturada en cada hoja de plan',
     refLabel:'Tipo de cambio de referencia', varLabel:'variación anual del tipo de cambio',
     tail:'Cifras en dólares (USD); el monto en pesos es únicamente de carácter ilustrativo y depende del tipo de cambio.',
-    defRate:'', defVar:'0' },
+    defRate:'', defVar:'3' },
 };
 let CUR = MONEDAS.UDI;
 
@@ -889,7 +890,9 @@ function parseText(text, filename){
 
 // --- Traduce build_ppr_excel.py a JS (SheetJS) ---
 function sheetNameFor(plan){
-  return plan.anos_pago ? `PPR PL ${plan.anos_pago}` : 'PPR 65';
+  const base = plan.anos_pago ? `PPR PL ${plan.anos_pago}` : 'PPR 65';
+  // Si dos cotizaciones son del mismo plan (p. ej. dos sumas aseguradas), la hoja lleva la suma para que no se repita el nombre.
+  return plan._dup ? `${base} ${Math.round(plan.suma_asegurada/1000)}k` : base;
 }
 
 function buildPlanSheet(wb, plan, udi, inflacion){
@@ -1032,7 +1035,7 @@ function computePlanRow(p, udi, inflacion){
   const lastCambio = udi*Math.pow(1+inflacion, p.plazo_cobertura_anos-1);
   const valorFinalPesos = p.valor_efectivo_final * lastCambio;
   const recup = Math.round((p.valor_efectivo_final/aportTotalUdi)*100);
-  const nombre = p.anos_pago ? `Ahorro en ${p.anos_pago} años` : 'Todos los años';
+  const nombre = p.etiqueta || (p.anos_pago ? `Ahorro en ${p.anos_pago} años` : 'Todos los años');
   return { nombre, anosPago, aportTotalUdi, aportTotalPesos, valorFinalPesos, recup };
 }
 
@@ -1057,7 +1060,7 @@ function addHandDrawnChart(slide, planes, cx, cy, cw, ch){
   const Y = (v) => plotY1 - (v/niceMax) * (plotY1-plotY0);
 
   // Leyenda
-  const legendItems = planes.map((p, i) => ({ name: p.anos_pago ? `Ahorro ${p.anos_pago} años` : 'Todos los años', color: seriesColors[i % seriesColors.length] }));
+  const legendItems = planes.map((p, i) => ({ name: p.etiquetaCorta || (p.anos_pago ? `Ahorro ${p.anos_pago} años` : 'Todos los años'), color: seriesColors[i % seriesColors.length] }));
   let lx = cx + cw/2 - (legendItems.length*1.65)/2;
   legendItems.forEach(it => {
     slide.addShape("line", { x: lx, y: cy+legendH/2, w: 0.28, h: 0, line: { color: it.color, width: 3 } });
@@ -1342,6 +1345,7 @@ function slideBeneficios(pres, ctx){
   const sumaTxt = sumaMin === sumaMax ? `(${pageFmt(sumaMin)} ${CUR.unit})` : `(de ${pageFmt(sumaMin)} a ${pageFmt(sumaMax)} ${CUR.unit} según tu opción)`;
   const opts = planes.map(p => p.anos_pago ? `${p.anos_pago} años` : 'durante todos los años productivos');
   const n = planes.length;
+  const optsUnicas = [...new Set(opts)];
 
   addT(s, "III. BENEFICIOS", 42, 141, {size: 13.6, bold: true, color: "152B34", cs: 1, w: 300});
   const t = {size: 13, bold: true, color: "152B34", w: 480};
@@ -1349,7 +1353,7 @@ function slideBeneficios(pres, ctx){
   addT(s, "PROTECCIÓN Y RESPALDO PATRIMONIAL", 90, 190, t);
   addT(s, ctx.planes.every(p => p.bait) ? "Tranquilidad financiera en efectivo para ti en caso de invalidez total y para tu familia si llegaras a faltar." : "Tranquilidad financiera para tu familia si llegaras a faltar.", 90, 206, d);
   addT(s, "PERIODO DE AHORRO A TU MEDIDA", 90, 233, t);
-  addT(s, n === 1 ? `Aportas ${opts[0]} con un plan pensado para tu momento.` : `Elige aportar ${listaO(opts)} — la que mejor se ajuste a tu momento.`, 90, 249, d);
+  addT(s, n === 1 ? `Aportas ${opts[0]} con un plan pensado para tu momento.` : (optsUnicas.length === 1 ? `Aportas ${opts[0]} y eliges la suma asegurada que mejor se ajuste a tu momento.` : `Elige aportar ${listaO(opts)} — la que mejor se ajuste a tu momento.`), 90, 249, d);
   addT(s, [{text: "GARANTÍA CONTRA LA INFLACIÓN (" + CUR.unit + ") ", bold: true}, {text: `Tu ahorro se indexa en ${CUR.unit} para asegurar que tu capital mantenga su valor real y poder adquisitivo a futuro.`, bold: false}], 90, 293, {size: 13, color: "152B34", w: 452, wrap: true, h: 36});
   addT(s, "POTENCIALIZA TU PATRIMONIO", 90, 347, t);
   addT(s, `La suma asegurada ${sumaTxt} es un activo en tu patrimonio que te da liquidez, seguridad y tranquilidad financiera.`, 90, 363, d);
@@ -1359,7 +1363,7 @@ function slideBeneficios(pres, ctx){
   const q = {size: G4.qS, color: "152B34", w: 480};
   addT(s, "¿Este plan cumple tus expectativas y objetivos de retiro?", G4.qX, G4.qs[0], q);
   addT(s, `¿Te genera tranquilidad contar con una suma asegurada de hasta ${pageFmt(sumaMax)} ${CUR.unit}?`, G4.qX, G4.qs[1], q);
-  addT(s, n === 1 ? "¿Esta forma de ahorro se ajusta a tu momento actual?" : `¿Cuál de las ${n} formas de ahorro se ajusta mejor a tu momento actual?`, G4.qX, G4.qs[2], q);
+  addT(s, n === 1 ? "¿Esta forma de ahorro se ajusta a tu momento actual?" : (optsUnicas.length === 1 ? `¿Cuál de las ${n} sumas aseguradas se ajusta mejor a tu momento actual?` : `¿Cuál de las ${n} formas de ahorro se ajusta mejor a tu momento actual?`), G4.qX, G4.qs[2], q);
 
   addT(s, "El tiempo y el interés compuesto están de tu lado", 306, G4.quoteY, {size: 17.1, color: "1A3A47", align: "center", w: 480});
   addT(s, "cuando empiezas hoy.", 306, G4.quoteY + 20, {size: 17.1, bold: true, color: "1A3A47", align: "center", w: 480});
@@ -1468,7 +1472,17 @@ async function generar(){
     return;
   }
 
-  planes.sort((a,b) => (a.anos_pago || 9999) - (b.anos_pago || 9999));
+  planes.sort((a,b) => ((a.anos_pago || 9999) - (b.anos_pago || 9999)) || (a.suma_asegurada - b.suma_asegurada));
+  // Dos cotizaciones del mismo plan (mismos años de ahorro) se distinguen por su suma asegurada.
+  planes.forEach(p => {
+    const mismos = planes.filter(q => (q.anos_pago || 0) === (p.anos_pago || 0));
+    if (mismos.length > 1){
+      p._dup = true;
+      const mil = Math.round(p.suma_asegurada/1000) + ' mil';
+      p.etiqueta = (p.anos_pago ? `Ahorro en ${p.anos_pago} años` : 'Todos los años') + ' · ' + mil;
+      p.etiquetaCorta = `Suma ${mil}`;
+    }
+  });
 
   const wb = XLSX.utils.book_new();
   const entries = planes.map(plan => {
