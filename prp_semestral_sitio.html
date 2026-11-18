@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PRP Semestral · MATVA</title>
+<meta name="description" content="Tu panel de producción: pólizas, meta y actividad de la semana.">
+<meta name="theme-color" content="#F6F1EA">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F1EA; --card:#FFFDF9; --beige:#EFE5D7; --beige-2:#E2D3BF; --line:#E9DFD1;
+  --verde:#557566; --verde-osc:#3E5A50; --salvia:#8FA89A; --salvia-cl:#E3EBE5;
+  --vino:#8C4D58; --vino-cl:#F3E4E5; --rosa:#C99AA0;
+  --ink:#2F3A36; --muted:#7A746B; --radius:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+/* Encabezado */
+.top{padding:22px 0 8px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:11px;letter-spacing:.24em;font-weight:800;color:var(--verde)}
+h1{margin:2px 0 0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;font-size:40px;line-height:1;color:var(--verde-osc)}
+.hello{font-size:15px;color:var(--muted);font-weight:600;margin-top:6px}
+.hello b{color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--verde-osc);white-space:nowrap}
+
+/* Tarjetas */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 8px 24px rgba(94,74,48,.06)}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--verde);font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 small{letter-spacing:0;text-transform:none;font-weight:600;color:var(--muted);font-size:12px}
+
+/* Anillo de meta */
+.hero{background:linear-gradient(160deg,#FFFDF9 0%,var(--beige) 100%);display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+.ring{position:relative;width:150px;height:150px}
+.ring svg{width:150px;height:150px;transform:rotate(-90deg)}
+.ring .track{stroke:var(--beige-2)}
+.ring .prog{stroke:var(--verde);stroke-linecap:round;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)}
+.ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .big{font-size:42px;font-weight:800;line-height:1;color:var(--verde-osc)}
+.ring .of{font-size:12px;font-weight:700;color:var(--muted)}
+.hero .t1{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--verde);font-weight:800}
+.hero .t2{font-size:22px;font-weight:800;margin:4px 0 8px;line-height:1.2}
+.hero .t3{font-size:14px;color:var(--muted);margin:0 0 10px}
+.status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800}
+.status.ok{background:var(--salvia-cl);color:var(--verde-osc)}
+.status.go{background:var(--vino-cl);color:var(--vino)}
+
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center}
+.kpi .v{font-size:28px;font-weight:800;color:var(--verde-osc);line-height:1.1}
+.kpi .v small{font-size:14px;color:var(--muted);font-weight:700}
+.kpi .l{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.bar{height:6px;border-radius:6px;background:var(--beige);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--verde);width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.bar.vino i{background:var(--vino)}
+
+/* Embudo */
+.funnel{display:flex;flex-direction:column;gap:10px}
+.f-row{display:grid;grid-template-columns:118px 1fr 44px;gap:10px;align-items:center}
+.f-row .n{font-weight:700;font-size:13px}
+.f-row .track{background:var(--beige);border-radius:10px;height:28px;overflow:hidden}
+.f-row .fill{height:100%;border-radius:10px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-weight:800;font-size:13px}
+.f-row .pct{font-size:12px;font-weight:800;color:var(--muted);text-align:right}
+.note{font-size:13px;color:var(--muted);margin:12px 0 0}
+
+.chart-box{position:relative;height:230px}
+.chart-box.donut{height:220px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:13px;font-weight:600}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.empty{text-align:center;color:var(--muted);padding:18px 8px;font-size:14px}
+
+/* Formularios */
+label,.lbl{display:block;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--verde);margin-bottom:6px}
+.opt{text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted)}
+input[type=text],input[type=date],input[type=number],textarea{width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:border-color .15s, box-shadow .15s}
+input:focus,textarea:focus{border-color:var(--salvia);box-shadow:0 0 0 3px var(--salvia-cl)}
+textarea{min-height:84px;resize:vertical}
+::placeholder{color:#A9A196}
+.field{margin-bottom:14px}
+
+.counters{display:flex;flex-direction:column;gap:10px}
+.counter{display:flex;align-items:center;justify-content:space-between;background:var(--beige);border-radius:14px;padding:10px 12px}
+.counter .name{font-weight:800;font-size:14px}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{border:0;background:#fff;color:var(--verde-osc);width:42px;height:42px;font-size:22px;font-weight:700;cursor:pointer;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.stepper button:active{transform:scale(.94)}
+.stepper input{width:56px;height:42px;border:0;background:transparent;text-align:center;font:800 24px Manrope,sans-serif;color:var(--verde-osc);outline:none;-moz-appearance:textfield;padding:0;box-shadow:none}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.saved{font-size:12px;font-weight:700;color:var(--verde);min-height:18px;margin-top:8px}
+
+/* Pólizas */
+.pol-total{display:flex;align-items:center;justify-content:space-between;background:var(--verde-osc);color:#fff;border-radius:16px;padding:14px 18px;margin-bottom:12px}
+.pol-total .t{font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.pol-total .t small{display:block;letter-spacing:0;text-transform:none;font-weight:600;opacity:.8}
+.pol-total .n{font-size:38px;font-weight:800;line-height:1}
+.pol-list{display:flex;flex-direction:column;gap:10px}
+.pol{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.pol .dot{width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px}
+.pol .info{flex:1;min-width:0}
+.pol .ins{font-weight:800}
+.pol .meta{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.icon-btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font:700 12px Manrope,sans-serif;color:var(--verde-osc);cursor:pointer}
+.icon-btn.del{color:var(--vino)}
+.icon-btn.del.armed{background:var(--vino);color:#fff;border-color:var(--vino)}
+.month-h{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 2px 0}
+
+.fab{position:fixed;right:max(16px,calc(50% - 364px));bottom:calc(92px + env(safe-area-inset-bottom));background:var(--vino);color:#fff;border:0;border-radius:999px;padding:14px 20px;font:800 15px Manrope,sans-serif;box-shadow:0 10px 24px rgba(140,77,88,.35);display:flex;align-items:center;gap:8px;cursor:pointer;z-index:5}
+.fab svg{width:20px;height:20px}
+
+/* Hoja inferior */
+.sheet-bg{position:fixed;inset:0;background:rgba(47,58,54,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.sheet-bg.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:760px;margin:0 auto;background:var(--card);border-radius:22px 22px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:21;max-height:92vh;overflow:auto}
+.sheet.open{transform:translateY(0);visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.grab{width:44px;height:5px;border-radius:5px;background:var(--beige-2);margin:0 auto 12px}
+.sheet h3{margin:0 0 14px;font-size:18px;color:var(--verde-osc)}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:12px 6px;font:800 13.5px Manrope,sans-serif;cursor:pointer}
+.chip-btn.on{color:#fff;border-color:transparent}
+
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{font:800 15px Manrope,sans-serif;border-radius:14px;padding:14px 18px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1 1 auto}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--verde-osc);color:#fff}
+.btn-vino{background:var(--vino);color:#fff}
+.btn-ghost{background:#fff;color:var(--verde-osc);border-color:var(--line)}
+.btn-danger{background:transparent;color:var(--vino);border-color:var(--vino-cl)}
+.btn-danger.armed{background:var(--vino);color:#fff}
+.btn svg{width:18px;height:18px}
+
+/* Navegación inferior */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+nav.tabs button{border:0;background:transparent;color:var(--muted);font:700 11.5px Manrope,sans-serif;padding:6px 2px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--verde-osc);background:var(--salvia-cl)}
+
+.view{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.welcome{text-align:center;padding:26px 18px}
+.welcome h2{justify-content:center}
+.welcome p{color:var(--muted);margin:0 0 16px}
+
+footer{text-align:center;padding:18px 16px 8px}
+.sig{display:block;font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:19px;font-weight:600;color:var(--verde-osc)}
+footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.06em}
+
+.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--verde-osc);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:all .25s;max-width:calc(100% - 32px);text-align:center;z-index:30}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.party{background:var(--vino)}
+
+@media (max-width:520px){
+  .hero{grid-template-columns:1fr;text-align:center;justify-items:center}
+  .kpis .kpi .v{font-size:24px}
+  .f-row{grid-template-columns:96px 1fr 40px}
+  h1{font-size:36px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">MATVA ASESORES</div>
+      <h1>PRP Semestral</h1>
+      <div class="hello" id="hello"></div>
+    </div>
+    <span class="chip" id="weekChip"></span>
+  </header>
+
+  <!-- ===== Bienvenida (sin nombre) ===== -->
+  <section class="card welcome" id="welcome" hidden>
+    <h2>Bienvenida a tu panel</h2>
+    <p>Escribe tu nombre completo para empezar.</p>
+    <div class="field" style="max-width:420px;margin:0 auto 12px"><input type="text" id="nameInput" placeholder="Nombre y apellidos" autocomplete="name"></div>
+    <button class="btn btn-primary" id="nameSave" style="max-width:420px;width:100%">Entrar a mi panel</button>
+  </section>
+
+  <main id="app" hidden>
+    <!-- ===== Mi panel ===== -->
+    <section class="view" data-view="panel">
+      <div class="card hero">
+        <div class="ring">
+          <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52" fill="none" stroke-width="12"/><circle class="prog" id="ringProg" cx="60" cy="60" r="52" fill="none" stroke-width="12" stroke-dasharray="326.73" stroke-dashoffset="326.73"/></svg>
+          <div class="center"><div class="big" id="ringNum">0</div><div class="of" id="ringOf">de 12</div></div>
+        </div>
+        <div>
+          <div class="t1">Meta de julio a diciembre</div>
+          <div class="t2" id="heroT2"></div>
+          <p class="t3" id="heroT3"></p>
+          <span class="status" id="heroStatus"></span>
+          <div style="margin-top:12px"><button class="btn btn-vino" id="heroAdd" style="padding:10px 16px;font-size:14px;flex:none">+ Registrar póliza</button></div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="kMes">0<small> / 2</small></div><div class="l" id="kMesL">Este mes</div><div class="bar"><i id="kMesBar"></i></div></div>
+        <div class="kpi"><div class="v" id="kProm">0</div><div class="l">Promedio al mes</div><div class="bar"><i id="kPromBar"></i></div></div>
+        <div class="kpi"><div class="v" id="kSol">0</div><div class="l">Solicitudes semana</div><div class="bar vino"><i id="kSolBar"></i></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Tu embudo de la semana <small id="funnelLbl"></small></h2>
+        <div class="funnel" id="funnel"></div>
+        <p class="note" id="funnelNote"></p>
+      </div>
+
+      <div class="card">
+        <h2>Pólizas por mes <small>meta: 2 al mes</small></h2>
+        <div class="chart-box"><canvas id="chMes"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h2>Tus instrumentos</h2>
+        <div id="donutWrap"><div class="chart-box donut"><canvas id="chIns"></canvas></div><div class="legend" id="insLegend"></div></div>
+        <div class="empty" id="donutEmpty">Registra tu primera póliza y aquí verás tu mezcla de instrumentos.</div>
+      </div>
+    </section>
+
+    <!-- ===== Mi semana ===== -->
+    <section class="view" data-view="semana" hidden>
+      <div class="card">
+        <h2>Actividad de la semana <small id="weekLbl"></small></h2>
+        <div class="counters" id="counters"></div>
+        <div class="saved" id="savedNote"></div>
+      </div>
+      <div class="card">
+        <div class="field" style="margin:0">
+          <label for="logro">Lo más importante de tu semana <span class="opt">(opcional)</span></label>
+          <textarea id="logro" placeholder="Un logro, un aprendizaje o lo que necesitas de tu gerente"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Mis pólizas ===== -->
+    <section class="view" data-view="polizas" hidden>
+      <div class="pol-total"><div class="t">Total de pólizas<small>de julio a la fecha</small></div><div class="n" id="polTotal">0</div></div>
+      <div class="pol-list" id="polList"></div>
+      <div style="height:70px"></div>
+    </section>
+
+    <!-- ===== Enviar ===== -->
+    <section class="view" data-view="enviar" hidden>
+      <div class="card">
+        <h2>Envía tu reporte</h2>
+        <p style="margin:0 0 14px;color:var(--muted)">Descarga tu Excel y compártelo en el grupo de WhatsApp de la gerencia.</p>
+        <div class="btns"><button class="btn btn-primary" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar mi reporte</button></div>
+      </div>
+      <div class="card">
+        <h2>Tu información</h2>
+        <div class="field"><label for="asesor">Nombre completo</label><input type="text" id="asesor" autocomplete="name"></div>
+        <p style="margin:0 0 12px;color:var(--muted);font-size:13.5px">¿Cambiaste de celular? Importa tu último Excel y recupera tus pólizas.</p>
+        <div class="btns">
+          <button class="btn btn-ghost" id="impBtn">Importar mi Excel</button>
+          <button class="btn btn-danger" id="clearBtn">Empezar de cero</button>
+        </div>
+        <input type="file" id="file" accept=".xlsx" hidden>
+      </div>
+    </section>
+
+    <footer><span class="sig">El poder de diseñar legados</span><small>MATVA ASESORES</small></footer>
+  </main>
+</div>
+
+<button class="fab" id="fab" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Registrar póliza</button>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <h3 id="sheetTitle">Nueva póliza</h3>
+  <div class="field"><span class="lbl">Instrumento</span><div class="chips" id="insChips"></div>
+    <input type="text" id="pOtro" placeholder="¿Cuál instrumento?" style="margin-top:10px" hidden></div>
+  <div class="field"><label for="pFecha">Fecha de pago</label><input type="date" id="pFecha"></div>
+  <div class="field"><label for="pCliente">Cliente <span class="opt">(opcional)</span></label><input type="text" id="pCliente" placeholder="Nombre o iniciales"></div>
+  <div class="btns"><button class="btn btn-vino" id="polSave">Guardar póliza</button><button class="btn btn-ghost" id="polCancel">Cancelar</button></div>
+</div>
+
+<nav class="tabs" id="tabs" hidden><div class="in">
+  <button data-tab="panel" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Mi panel</button>
+  <button data-tab="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Mi semana</button>
+  <button data-tab="polizas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Mis pólizas</button>
+  <button data-tab="enviar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>Enviar</button>
+</div></nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+(function(){
+  /* ===== Configuración ===== */
+  const PERIODO_INICIO = '2026-07-01', PERIODO_FIN = '2026-12-31';
+  const META_MENSUAL = 2;
+  const INSTR = ['Imagina Ser', 'Vida Mujer', 'GMM', 'ORVI', 'Dotal', 'Otro'];
+  const ICOL  = ['#557566', '#8C4D58', '#8FA89A', '#3E5A50', '#C99AA0', '#D6C7B3'];
+  const ACTS = [['ci','Citas iniciales'],['cc','Citas de cierre'],['sol','Solicitudes llenadas']];
+  const KEY = 'matva_produccion_v1';
+  const FORMATO = 'MATVA-PRODUCCION-1';
+  const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const MESL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function toast(m, party){ const t=$('toast'); t.textContent=m; t.classList.toggle('party', !!party); t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'), party ? 3600 : 2600); }
+  function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+  function addDays(iso,n){ const d=new Date(iso+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+  function mondayOf(iso){ const d=new Date(iso+'T00:00:00Z'); return addDays(iso,-((d.getUTCDay()+6)%7)); }
+  const fmt = iso => { const [y,m,d]=iso.split('-'); return Number(d)+' '+MES[m-1]+' '+y; };
+  const fmtShort = iso => { const [y,m,d]=iso.split('-'); return Number(d)+' '+MES[m-1]; };
+  const dmy = iso => { const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; };
+  const uid = () => Math.random().toString(36).slice(2,10);
+  const LEGACY = x => { const t = String(x||'').trim(); if (/^(ppr|retiro|imagina)/i.test(t)) return 'Imagina Ser'; if (/gastos|^gmm/i.test(t)) return 'GMM'; if (/^orvi/i.test(t)) return 'ORVI'; if (/^(total|dotal)$/i.test(t)) return 'Dotal'; if (/vida mujer/i.test(t)) return 'Vida Mujer'; return t; };
+  const instOf = p => { const x = LEGACY(p.instrumento || p.ramo || 'Otro'); return INSTR.includes(x) ? x : 'Otro'; };
+  const instLabel = p => { const x = instOf(p); if (x !== 'Otro') return x; const raw = LEGACY(p.instrumento || p.ramo || ''); const det = p.otro || (raw && raw !== 'Otro' ? raw : ''); return det ? 'Otro: ' + det : 'Otro'; };
+  const colOf = x => ICOL[INSTR.indexOf(x)] || ICOL[5];
+  const initials = x => x === 'Imagina Ser' ? 'IS' : x === 'Vida Mujer' ? 'VM' : x === 'Otro' ? '+' : x.slice(0,2).toUpperCase();
+
+  const HOY = todayISO();
+  const CORTE = HOY < PERIODO_FIN ? HOY : PERIODO_FIN;
+  const SEM_INI = addDays(mondayOf(HOY), -7), SEM_FIN = addDays(SEM_INI, 6);
+  // meses del periodo
+  const MESES = []; { let [y,m] = PERIODO_INICIO.split('-').map(Number); const [ey,em] = PERIODO_FIN.split('-').map(Number); while (y < ey || (y === ey && m <= em)) { MESES.push(y+'-'+String(m).padStart(2,'0')); m++; if (m>12){m=1;y++;} } }
+  const META_TOTAL = META_MENSUAL * MESES.length;
+  const MES_ACTUAL = CORTE.slice(0,7);
+  const idxMes = Math.max(0, MESES.indexOf(MES_ACTUAL));
+  const mesesCompletos = HOY > PERIODO_FIN ? MESES.length : idxMes;           // meses ya cerrados
+  const mesesTranscurridos = Math.min(MESES.length, idxMes + 1);              // incluye el mes en curso
+
+  let state = { asesor:'', semana:{ inicio:SEM_INI, ci:'', cc:'', sol:'', logro:'' }, polizas:[] };
+  function load(){ try { const s=JSON.parse(localStorage.getItem(KEY)||'null'); if (s) state = Object.assign(state, s); } catch(e){}
+    if (!state.semana || state.semana.inicio !== SEM_INI) state.semana = { inicio:SEM_INI, ci:'', cc:'', sol:'', logro:'' }; }
+  function persist(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+  const pols = () => state.polizas.filter(p => p.fecha >= PERIODO_INICIO && p.fecha <= PERIODO_FIN);
+
+  /* ===== Navegación ===== */
+  let tab = 'panel';
+  function show(t){
+    tab = t;
+    document.querySelectorAll('.view').forEach(v => v.hidden = v.dataset.view !== t);
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    $('fab').hidden = t !== 'polizas';
+    if (t === 'panel') renderPanel();
+    window.scrollTo({ top:0 });
+  }
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) show(b.dataset.tab); });
+
+  /* ===== Animaciones ===== */
+  function countUp(el, to, suffix=''){ const dur = 700, t0 = performance.now(), dec = Number.isInteger(to) ? 0 : 1;
+    function f(t){ const k = Math.min(1,(t-t0)/dur), e = 1 - Math.pow(1-k,3); el.innerHTML = (to*e).toFixed(dec) + suffix; if (k<1) requestAnimationFrame(f); } requestAnimationFrame(f); }
+  const setBar = (id, pct) => requestAnimationFrame(() => $(id).style.width = Math.max(0,Math.min(100,pct)) + '%');
+
+  /* ===== Panel ===== */
+  const charts = {};
+  Chart.defaults.font.family = 'Manrope, system-ui, sans-serif'; Chart.defaults.color = '#7A746B';
+  function renderPanel(){
+    const P = pols(), n = P.length;
+    $('hello').innerHTML = 'Hola, <b>' + esc((state.asesor||'').trim().split(/\s+/)[0] || '') + '</b>';
+    // anillo
+    const C = 326.73, pct = Math.min(1, n / META_TOTAL);
+    $('ringProg').style.strokeDashoffset = C;
+    requestAnimationFrame(() => requestAnimationFrame(() => $('ringProg').style.strokeDashoffset = C * (1 - pct)));
+    countUp($('ringNum'), n); $('ringOf').textContent = 'de ' + META_TOTAL + ' pólizas';
+    const faltan = Math.max(0, META_TOTAL - n);
+    $('heroT2').textContent = faltan ? 'Te faltan ' + faltan + (faltan === 1 ? ' póliza' : ' pólizas') : '¡Meta de diciembre cumplida!';
+    const metaHoy = META_MENSUAL * mesesTranscurridos;
+    $('heroT3').textContent = 'Meta al cierre de ' + MESL[Number(MES_ACTUAL.slice(5))-1].toLowerCase() + ': ' + metaHoy + ' pólizas.';
+    const st = $('heroStatus');
+    if (n >= metaHoy) { st.className = 'status ok'; st.textContent = '✓ Vas en meta'; }
+    else { const d = metaHoy - n; st.className = 'status go'; st.textContent = 'Te faltan ' + d + ' para ir en meta a ' + MESL[Number(MES_ACTUAL.slice(5))-1].toLowerCase(); }
+    // KPIs
+    const delMes = P.filter(p => p.fecha.startsWith(MES_ACTUAL)).length;
+    countUp($('kMes'), delMes, '<small> / ' + META_MENSUAL + '</small>'); $('kMesL').textContent = 'Pólizas en ' + MESL[Number(MES_ACTUAL.slice(5))-1].toLowerCase();
+    setBar('kMesBar', delMes / META_MENSUAL * 100);
+    const prom = Math.round(n / mesesTranscurridos * 10) / 10;
+    countUp($('kProm'), prom); setBar('kPromBar', prom / META_MENSUAL * 100);
+    const s = state.semana, ci = +s.ci||0, cc = +s.cc||0, sol = +s.sol||0;
+    countUp($('kSol'), sol); setBar('kSolBar', sol ? Math.min(100, sol/3*100) : 0);
+    // embudo
+    const polSem = P.filter(p => p.fecha >= SEM_INI && p.fecha <= SEM_FIN).length;
+    const steps = [['Citas iniciales', ci, '#3E5A50'], ['Citas de cierre', cc, '#557566'], ['Solicitudes', sol, '#8FA89A'], ['Pólizas pagadas', polSem, '#8C4D58']];
+    const max = Math.max(1, ...steps.map(x => x[1]));
+    $('funnelLbl').textContent = fmtShort(SEM_INI) + ' – ' + fmtShort(SEM_FIN);
+    $('funnel').innerHTML = steps.map(([l,v,c],i) => { const prev = i ? steps[i-1][1] : 0; const pc = i && prev ? Math.round(v/prev*100) + '%' : '';
+      return `<div class="f-row"><div class="n">${l}</div><div class="track"><div class="fill" style="background:${c}" data-w="${v ? Math.max(12, v/max*100) : 0}">${v || ''}</div></div><div class="pct">${pc}</div></div>`; }).join('');
+    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('#funnel .fill').forEach(f => f.style.width = f.dataset.w + '%')));
+    $('funnelNote').textContent = ci + cc + sol === 0 ? 'Registra tu actividad en la pestaña «Mi semana».' : cc && ci ? 'De cada 10 citas iniciales, ' + Math.round(cc/ci*10) + ' llegan a cierre.' : 'Cada cita inicial es una semilla: agenda tus cierres.';
+    // gráfica mensual
+    const porMes = MESES.map(m => P.filter(p => p.fecha.startsWith(m)).length);
+    const bg = MESES.map((m,i) => m > MES_ACTUAL ? '#E2D3BF' : porMes[i] >= META_MENSUAL ? '#557566' : '#8FA89A');
+    if (charts.mes) charts.mes.destroy();
+    charts.mes = new Chart($('chMes'), { data:{ labels: MESES.map(m => MESL[Number(m.slice(5))-1].slice(0,3)),
+      datasets:[ { type:'bar', label:'Pólizas', data:porMes, backgroundColor:bg, borderRadius:8, maxBarThickness:42, order:2 },
+                 { type:'line', label:'Meta', data:MESES.map(() => META_MENSUAL), borderColor:'#8C4D58', borderDash:[6,5], borderWidth:2, pointRadius:0, order:1 } ] },
+      options:{ maintainAspectRatio:false, animation:{ duration:900 }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, suggestedMax: Math.max(4, ...porMes) + 1, ticks:{ precision:0 }, grid:{ color:'#EFE5D7' } } },
+        plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: c => c.dataset.label + ': ' + c.parsed.y } } } } });
+    // dona
+    const used = INSTR.filter(x => P.some(p => instOf(p) === x));
+    $('donutWrap').hidden = !n; $('donutEmpty').hidden = !!n;
+    if (charts.ins) charts.ins.destroy();
+    if (n) {
+      const vals = used.map(x => P.filter(p => instOf(p) === x).length);
+      charts.ins = new Chart($('chIns'), { type:'doughnut', data:{ labels:used, datasets:[{ data:vals, backgroundColor:used.map(colOf), borderColor:'#FFFDF9', borderWidth:3 }] },
+        options:{ maintainAspectRatio:false, cutout:'62%', animation:{ animateRotate:true, duration:900 }, plugins:{ legend:{ display:false } } } });
+      $('insLegend').innerHTML = used.map((x,i) => `<span><i style="background:${colOf(x)}"></i>${esc(x)} · <b>${vals[i]}</b></span>`).join('');
+    }
+  }
+
+  /* ===== Mi semana ===== */
+  $('weekLbl').textContent = fmtShort(SEM_INI) + ' – ' + fmt(SEM_FIN);
+  $('weekChip').textContent = 'Semana ' + fmtShort(SEM_INI) + ' – ' + fmtShort(SEM_FIN);
+  $('counters').innerHTML = ACTS.map(([k,n]) => `
+    <div class="counter"><div class="name">${n}</div>
+      <div class="stepper"><button type="button" data-k="${k}" data-s="-1" aria-label="Restar">−</button>
+      <input type="number" inputmode="numeric" min="0" id="a_${k}" placeholder="0" aria-label="${n}">
+      <button type="button" data-k="${k}" data-s="1" aria-label="Sumar">+</button></div></div>`).join('');
+  $('counters').addEventListener('click', e => { const b=e.target.closest('[data-s]'); if(!b) return;
+    const i=$('a_'+b.dataset.k); i.value=Math.max(0,(parseInt(i.value,10)||0)+Number(b.dataset.s)); syncWeek(); });
+  $('counters').addEventListener('input', syncWeek);
+  $('logro').addEventListener('input', syncWeek);
+  function syncWeek(){ ACTS.forEach(([k]) => { const v=$('a_'+k).value.trim(); state.semana[k] = v==='' ? '' : String(Math.max(0,parseInt(v,10)||0)); });
+    state.semana.logro=$('logro').value; persist(); $('savedNote').textContent = 'Guardado ✓'; clearTimeout(syncWeek._t); syncWeek._t = setTimeout(() => $('savedNote').textContent = '', 1600); }
+
+  /* ===== Pólizas ===== */
+  let editId = null, sel = '';
+  $('insChips').innerHTML = INSTR.map(x => `<button type="button" class="chip-btn" data-i="${esc(x)}">${esc(x)}</button>`).join('');
+  $('insChips').addEventListener('click', e => { const b=e.target.closest('[data-i]'); if(!b) return; sel=b.dataset.i; paintChips(); if (sel==='Otro') $('pOtro').focus(); });
+  function paintChips(){ document.querySelectorAll('#insChips .chip-btn').forEach(c => { const on = c.dataset.i === sel; c.classList.toggle('on', on); c.style.background = on ? colOf(c.dataset.i) : ''; c.style.color = on && c.dataset.i === 'Otro' ? '#2F3A36' : ''; }); $('pOtro').hidden = sel !== 'Otro'; }
+  $('pFecha').min = PERIODO_INICIO; $('pFecha').max = CORTE;
+
+  function openSheet(p){
+    editId = p ? p.id : null; $('sheetTitle').textContent = p ? 'Editar póliza' : 'Nueva póliza';
+    sel = p ? instOf(p) : ''; $('pOtro').value = p ? (p.otro || (instOf(p)==='Otro' ? (LEGACY(p.instrumento||p.ramo||'')==='Otro' ? '' : LEGACY(p.instrumento||p.ramo||'')) : '')) : ''; paintChips();
+    $('pFecha').value = p ? p.fecha : CORTE; $('pCliente').value = p ? (p.cliente||'') : '';
+    $('sheet').classList.add('open'); $('sheetBg').classList.add('open');
+  }
+  function closeSheet(){ $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open'); editId = null; }
+  $('fab').addEventListener('click', () => openSheet(null));
+  $('heroAdd').addEventListener('click', () => openSheet(null));
+  $('polCancel').addEventListener('click', closeSheet); $('sheetBg').addEventListener('click', closeSheet);
+  $('polSave').addEventListener('click', () => {
+    const f = $('pFecha').value;
+    if (!sel){ toast('Elige el instrumento.'); return; }
+    if (!f || f < PERIODO_INICIO || f > CORTE){ toast('La fecha de pago va del ' + dmy(PERIODO_INICIO) + ' a hoy.'); $('pFecha').focus(); return; }
+    const before = pols().filter(p => p.fecha.startsWith(MES_ACTUAL)).length;
+    const p = { id: editId || uid(), instrumento: sel, otro: sel === 'Otro' ? $('pOtro').value.trim() : '', cliente: $('pCliente').value.trim(), fecha: f };
+    const i = state.polizas.findIndex(x => x.id === p.id);
+    if (i >= 0) state.polizas[i] = p; else state.polizas.push(p);
+    persist(); closeSheet(); renderPol(); if (tab === 'panel') renderPanel();
+    const after = pols().filter(x => x.fecha.startsWith(MES_ACTUAL)).length;
+    if (i < 0 && before < META_MENSUAL && after >= META_MENSUAL) toast('¡Meta del mes cumplida! Así se diseña un legado 🎉', true);
+    else toast(i >= 0 ? 'Póliza actualizada ✓' : 'Póliza registrada ✓ Llevas ' + pols().length);
+  });
+
+  function renderPol(){
+    const list = pols().sort((a,b) => b.fecha.localeCompare(a.fecha));
+    countUp($('polTotal'), list.length);
+    if (!list.length){ $('polList').innerHTML = '<div class="card empty">Toca <b>Registrar póliza</b> para sumar tu primera póliza pagada.</div>'; return; }
+    let html = '', cur = '';
+    list.forEach(p => { const m = p.fecha.slice(0,7);
+      if (m !== cur){ cur = m; const k = list.filter(x => x.fecha.startsWith(m)).length; html += `<div class="month-h">${MESL[Number(m.slice(5))-1]} · ${k} ${k===1?'póliza':'pólizas'}</div>`; }
+      const x = instOf(p);
+      html += `<div class="pol"><div class="dot" style="background:${colOf(x)};${x==='Otro'?'color:#2F3A36':''}">${initials(x)}</div>
+        <div class="info"><div class="ins">${esc(instLabel(p))}</div><div class="meta">${p.cliente ? esc(p.cliente) + ' · ' : ''}Pagada el ${fmt(p.fecha)}</div></div>
+        <button class="icon-btn" data-ed="${p.id}">Editar</button><button class="icon-btn del" data-del="${p.id}">Quitar</button></div>`; });
+    $('polList').innerHTML = html;
+  }
+  $('polList').addEventListener('click', e => {
+    const ed = e.target.closest('[data-ed]'); if (ed){ openSheet(state.polizas.find(p => p.id === ed.dataset.ed)); return; }
+    const d = e.target.closest('[data-del]'); if (!d) return;
+    if (!d.classList.contains('armed')){ d.classList.add('armed'); d.textContent='¿Quitar?'; setTimeout(()=>{ if(d.isConnected){ d.classList.remove('armed'); d.textContent='Quitar'; } },3000); return; }
+    state.polizas = state.polizas.filter(p => p.id !== d.dataset.del); persist(); renderPol(); toast('Póliza quitada');
+  });
+
+  /* ===== Nombre ===== */
+  function enter(){
+    const has = !!(state.asesor||'').trim();
+    $('welcome').hidden = has; $('app').hidden = !has; $('tabs').hidden = !has;
+    if (has) { $('asesor').value = state.asesor; show(tab); } else { $('fab').hidden = true; }
+  }
+  $('nameSave').addEventListener('click', () => { const v = $('nameInput').value.trim(); if (v.split(/\s+/).length < 2){ toast('Escribe tu nombre y al menos un apellido.'); return; } state.asesor = v; persist(); enter(); });
+  $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('nameSave').click(); });
+  $('asesor').addEventListener('input', () => { state.asesor = $('asesor').value; persist(); });
+
+  /* ===== Excel ===== */
+  function fileName(){
+    const parts = state.asesor.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z\s]/g,'').trim().split(/\s+/).filter(Boolean);
+    const tag = parts.length ? parts[0] + parts.slice(1).map(p => p[0].toUpperCase()).join('') : 'Asesor';
+    const [y,m,d] = HOY.split('-'); return 'Produccion_MATVA_' + d + '.' + m + '.' + y.slice(2) + '-' + tag + '.xlsx';
+  }
+  async function buildXlsx(){
+    const X = { verde:'FF3E5A50', verde2:'FF557566', beige:'FFEFE5D7', beige2:'FFF7F1E8', line:'FFE2D3BF', ink:'FF2F3A36', muted:'FF7A746B', vino:'FF8C4D58', white:'FFFFFFFF' };
+    const wb = new ExcelJS.Workbook(); wb.creator = 'MATVA Asesores'; wb.created = new Date();
+    const ws = wb.addWorksheet('Reporte', { views:[{ showGridLines:false }], pageSetup:{ orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
+    ws.columns = [{width:6},{width:32},{width:24},{width:16},{width:16}];
+    const font = (o={}) => Object.assign({ name:'Calibri', size:11, color:{argb:X.ink} }, o);
+    const fill = c => ({ type:'pattern', pattern:'solid', fgColor:{argb:c} });
+    const line = { style:'thin', color:{argb:X.line} };
+    const band = (r, text, bg, f, h) => { ws.mergeCells(r,1,r,5); const c=ws.getCell(r,1); c.value=text; c.font=f; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; for(let i=1;i<=5;i++) ws.getCell(r,i).fill=fill(bg); ws.getRow(r).height=h; };
+    const section = (r, text) => { ws.mergeCells(r,1,r,5); const c=ws.getCell(r,1); c.value=text; c.font=font({bold:true,color:{argb:X.white}}); c.alignment={vertical:'middle',indent:1}; for(let i=1;i<=5;i++) ws.getCell(r,i).fill=fill(X.verde2); ws.getRow(r).height=24; };
+    const head = (r, cols) => { cols.forEach((t,i) => { const c=ws.getCell(r,i+1); c.value=t; c.font=font({bold:true,size:10,color:{argb:X.verde}}); c.fill=fill(X.beige); c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; c.border={bottom:{style:'medium',color:{argb:X.verde2}}}; }); ws.getRow(r).height=30; };
+    const P = pols().sort((a,b) => a.fecha.localeCompare(b.fecha)), n = P.length;
+    const s = state.semana, num = k => s[k] === '' ? null : Number(s[k]);
+
+    band(1, 'MATVA ASESORES | PRP SEMESTRAL', X.verde, font({bold:true,size:18,color:{argb:X.white}}), 34);
+    band(2, 'REPORTE DE PRODUCCIÓN Y ACTIVIDAD', X.beige, font({bold:true,size:12,color:{argb:X.verde}}), 24);
+    band(3, 'Asesor(a): ' + state.asesor.trim() + '   ·   Fecha de reporte: ' + dmy(HOY), X.beige2, font({bold:true,color:{argb:X.ink}}), 22);
+
+    // Meta
+    section(5, 'AVANCE DE META  ·  ' + META_MENSUAL + ' pólizas al mes, ' + META_TOTAL + ' de julio a diciembre');
+    head(6, ['', 'Pólizas de julio a la fecha', 'Meta a ' + MESL[Number(MES_ACTUAL.slice(5))-1].toLowerCase(), 'Meta a diciembre', 'Avance']);
+    ws.getCell(6,1).fill = fill(X.beige);
+    const metaHoy = META_MENSUAL * mesesTranscurridos;
+    ws.getCell(7,2).value = n; ws.getCell(7,3).value = metaHoy; ws.getCell(7,4).value = META_TOTAL;
+    ws.getCell(7,5).value = { formula:'IF(D7=0,0,B7/D7)', result: META_TOTAL ? n/META_TOTAL : 0 }; ws.getCell(7,5).numFmt = '0%';
+    for (let i=1;i<=5;i++){ const c=ws.getCell(7,i); c.font=font({bold:true,size:16,color:{argb: i===5 ? X.vino : X.verde}}); c.alignment={horizontal:'center',vertical:'middle'}; c.fill=fill(X.beige2); c.border={bottom:line}; }
+    ws.getRow(7).height = 30;
+
+    // Actividad
+    section(9, 'ACTIVIDAD DE LA SEMANA  ·  lunes ' + dmy(SEM_INI) + ' al domingo ' + dmy(SEM_FIN));
+    ws.mergeCells(10,1,10,2); ws.mergeCells(11,1,11,2);
+    head(10, ['Citas iniciales','','Citas de cierre','Solicitudes llenadas','Total actividad']); ws.getCell(10,1).value = 'Citas iniciales';
+    ws.getCell(11,1).value = num('ci'); ws.getCell(11,3).value = num('cc'); ws.getCell(11,4).value = num('sol');
+    ws.getCell(11,5).value = { formula:'SUM(A11,C11,D11)', result:(num('ci')||0)+(num('cc')||0)+(num('sol')||0) };
+    for (let i=1;i<=5;i++){ const c=ws.getCell(11,i); c.font=font({bold:true,size:16,color:{argb:X.verde}}); c.alignment={horizontal:'center',vertical:'middle'}; c.fill=fill(X.beige2); c.border={bottom:line}; }
+    ws.getRow(11).height = 30;
+    ws.mergeCells(12,1,12,5); ws.getCell(12,1).value = s.logro.trim() ? 'Lo más importante de la semana: ' + s.logro.trim() : null;
+    ws.getCell(12,1).font = font({italic:true,color:{argb:X.muted}}); ws.getCell(12,1).alignment = {wrapText:true,vertical:'top'};
+    ws.getRow(12).height = s.logro.trim() ? Math.min(90, 18 + 15*Math.ceil(s.logro.length/80)) : 6;
+
+    // Pólizas
+    section(14, 'PÓLIZAS EMITIDAS Y PAGADAS  ·  del ' + dmy(PERIODO_INICIO) + ' al ' + dmy(CORTE));
+    head(15, ['#','Cliente','Instrumento','Fecha de pago','Mes de pago']);
+    P.forEach((p,i) => { const r = 16 + i, row = ws.getRow(r); const [y,m,d] = p.fecha.split('-').map(Number);
+      row.values = [i+1, p.cliente || null, instLabel(p), new Date(Date.UTC(y,m-1,d)), MESL[m-1]]; row.height = 20;
+      for (let c=1;c<=5;c++){ const cell=row.getCell(c); cell.font=font({size:10.5}); cell.fill=fill(i%2 ? X.beige2 : X.white); cell.border={bottom:line}; cell.alignment={vertical:'middle',horizontal: c===2 ? 'left' : 'center'}; }
+      row.getCell(4).numFmt = 'dd/mm/yyyy'; });
+    const tr = 16 + n;
+    ws.mergeCells(tr,1,tr,3); ws.getCell(tr,1).value = 'TOTAL DE PÓLIZAS DE JULIO A LA FECHA';
+    ws.getCell(tr,4).value = { formula: n ? `COUNTA(C16:C${tr-1})` : '0', result:n };
+    for (let c=1;c<=5;c++){ const cell=ws.getCell(tr,c); cell.fill=fill(X.vino); cell.font=font({bold:true,color:{argb:X.white}}); cell.alignment={horizontal:c===1?'left':'center',vertical:'middle',indent:c===1?1:0}; }
+    ws.getCell(tr,4).font = font({bold:true,size:16,color:{argb:X.white}}); ws.getRow(tr).height = 30;
+    // vincula el avance con el total
+    ws.getCell(7,2).value = { formula:`D${tr}`, result:n };
+
+    // Por instrumento
+    const sr = tr + 2; section(sr, 'PÓLIZAS POR INSTRUMENTO');
+    ws.mergeCells(sr+1,1,sr+1,2); head(sr+1, ['Instrumento','','Pólizas']); ws.getCell(sr+1,1).value = 'Instrumento';
+    const used = INSTR.filter(x => P.some(p => instOf(p) === x));
+    used.forEach((x,i) => { const r = sr+2+i; ws.mergeCells(r,1,r,2);
+      ws.getCell(r,1).value = x; ws.getCell(r,3).value = { formula:`COUNTIF($C$16:$C$${tr-1},"${x === 'Otro' ? 'Otro*' : x}")`, result: P.filter(p => instOf(p) === x).length };
+      for (let c=1;c<=3;c++){ const cell=ws.getCell(r,c); cell.fill=fill(i%2 ? X.beige2 : X.white); cell.border={bottom:line}; cell.font=font({size:10.5,bold:c===3,color:{argb:c===3?X.verde:X.ink}}); cell.alignment={vertical:'middle',horizontal:c===1?'left':'center',indent:c===1?1:0}; }
+      ws.getRow(r).height = 20; });
+    const fr = sr + 3 + used.length; ws.mergeCells(fr,1,fr,5);
+    ws.getCell(fr,1).value = 'MATVA ASESORES · El poder de diseñar legados'; ws.getCell(fr,1).font = font({bold:true,size:10,color:{argb:X.verde2}}); ws.getCell(fr,1).alignment = {horizontal:'center'};
+
+    const data = wb.addWorksheet('datos', { state:'veryHidden' });
+    data.getCell('A1').value = JSON.stringify({ formato:FORMATO, asesor:state.asesor.trim(), fechaReporte:HOY, periodoInicio:PERIODO_INICIO, metaMensual:META_MENSUAL,
+      semana:{ inicio:SEM_INI, fin:SEM_FIN, ci:num('ci')||0, cc:num('cc')||0, sol:num('sol')||0, logro:s.logro.trim() },
+      polizas: P.map(p => ({ instrumento:instOf(p), otro:p.otro||'', cliente:p.cliente||'', fecha:p.fecha })) });
+    return wb;
+  }
+  $('dlBtn').addEventListener('click', async () => {
+    if (!state.asesor.trim()){ toast('Escribe tu nombre.'); $('asesor').focus(); return; }
+    if (typeof ExcelJS === 'undefined'){ toast('Revisa tu conexión a internet e intenta de nuevo.'); return; }
+    try {
+      const buf = await (await buildXlsx()).xlsx.writeBuffer();
+      const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName();
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('Reporte descargado ✓ Compártelo en el grupo');
+    } catch(err){ console.error(err); toast('No se pudo generar el Excel.'); }
+  });
+  $('impBtn').addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', async () => {
+    const f = $('file').files[0]; $('file').value = ''; if (!f) return;
+    try {
+      const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await f.arrayBuffer());
+      const ws = wb.getWorksheet('datos'); const d = ws && JSON.parse(String(ws.getCell('A1').value));
+      if (!d || d.formato !== FORMATO) throw new Error('formato');
+      const seen = new Set(state.polizas.map(p => [instOf(p),p.cliente||'',p.fecha].join('|'))); let added = 0;
+      d.polizas.forEach(p => { const k=[instOf(p),p.cliente||'',p.fecha].join('|'); if (!seen.has(k)) { state.polizas.push(Object.assign({id:uid()}, p)); seen.add(k); added++; } });
+      if (!state.asesor.trim() && d.asesor) { state.asesor = d.asesor; $('asesor').value = d.asesor; }
+      persist(); renderPol();
+      toast(added ? added + (added===1 ? ' póliza recuperada ✓' : ' pólizas recuperadas ✓') : 'Tus pólizas ya estaban al día ✓');
+    } catch(err){ console.error(err); toast('Ese archivo no es un reporte de Producción.'); }
+  });
+  $('clearBtn').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Toca otra vez para borrar todo'; setTimeout(()=>{ b.classList.remove('armed'); b.textContent='Empezar de cero'; },3500); return; }
+    b.classList.remove('armed'); b.textContent='Empezar de cero';
+    state = { asesor:state.asesor, semana:{ inicio:SEM_INI, ci:'', cc:'', sol:'', logro:'' }, polizas:[] }; persist(); paint(); toast('Panel reiniciado');
+  });
+
+  function paint(){
+    ACTS.forEach(([k]) => $('a_'+k).value = state.semana[k] ?? '');
+    $('logro').value = state.semana.logro || '';
+    renderPol(); if (tab === 'panel') renderPanel();
+  }
+  load(); paint(); enter();
+})();
+</script>
+</body>
+</html>

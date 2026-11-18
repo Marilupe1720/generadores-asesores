@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concentrado de Producción</title>
+<meta name="description" content="Concentrado de producción y actividad del equipo, con gráficas y Excel para la promotoría.">
+<meta name="theme-color" content="#F6F1EA">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bosque:#3E5A50; --medio:#557566; --suave:#8FA89A; --gris:#E2D3BF;
+  --claro:#EFE5D7; --hueso:#F6F1EA; --ink:#2F3A36; --muted:#7A746B; --line:#E9DFD1;
+  --card:#FFFDF9; --danger:#8C4D58; --vino:#8C4D58; --vino-cl:#F3E4E5; --salvia-cl:#E3EBE5; --radius:18px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--hueso);color:var(--ink);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header{margin-bottom:20px}
+.band1{background:linear-gradient(160deg,#FFFDF9 0%,var(--claro) 100%);color:var(--bosque);text-align:center;padding:24px 16px 18px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px;letter-spacing:.24em;font-weight:800;color:var(--medio)}
+.band1 h1{margin:4px 0 0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;font-size:clamp(34px,7vw,52px);line-height:1.05}
+.band2{background:var(--bosque);color:#fff;text-align:center;font-weight:800;letter-spacing:.1em;font-size:12.5px;padding:10px 16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 8px 24px rgba(94,74,48,.06);margin-bottom:18px;overflow:hidden}
+.card-h{background:var(--card);color:var(--medio);border-bottom:1px solid var(--line);padding:12px 18px;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-h small{font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--muted);font-size:12.5px}
+.card-b{padding:18px}
+
+.drop{border:2px dashed var(--gris);border-radius:12px;padding:26px 16px;text-align:center;background:var(--hueso);cursor:pointer;transition:background .15s,border-color .15s}
+.drop.over{background:var(--claro);border-color:var(--bosque)}
+.drop b{color:var(--bosque);font-size:16px}
+.drop p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+.loaded{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tag{display:inline-flex;align-items:center;gap:6px;background:var(--claro);color:var(--bosque);font-weight:700;font-size:13px;border-radius:999px;padding:5px 6px 5px 12px}
+.tag button{border:0;background:#fff;color:var(--danger);width:22px;height:22px;border-radius:50%;cursor:pointer;font-weight:800;line-height:1}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.kpi .v{font-size:30px;font-weight:800;color:var(--bosque);line-height:1.1}
+.kpi .l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.kpi .s{font-size:12px;color:var(--medio);font-weight:700;margin-top:2px}
+.kpi.main{background:var(--bosque);border-color:var(--bosque)}
+.kpi.main .v,.kpi.main .l,.kpi.main .s{color:#fff}
+
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chart-box{position:relative;height:340px}
+.chart-box.tall{height:var(--h,380px)}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--claro);color:var(--bosque);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;text-align:center;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:nth-child(odd) td{background:#fff}
+tbody tr:nth-child(even) td{background:#FBF7F1}
+td.n{text-align:center;font-weight:700}
+td.b{font-weight:800;color:var(--bosque);min-width:170px}
+tfoot td{background:var(--vino);color:#fff;font-weight:800;border:0}
+.quote{border-left:3px solid var(--suave);padding:6px 0 6px 12px;margin:0 0 12px}
+.quote b{color:var(--bosque)}
+.quote p{margin:2px 0 0;color:var(--ink)}
+
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{font:700 14px Manrope,sans-serif;border-radius:10px;padding:12px 18px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--bosque);color:#fff}
+.btn-ghost{background:#fff;color:var(--bosque);border-color:var(--gris)}
+.btn-danger{background:#fff;color:var(--danger);border-color:#E5D2CC}
+.btn-danger.armed{background:var(--danger);color:#fff}
+.btn svg{width:18px;height:18px}
+.av{display:inline-block;border-radius:999px;padding:3px 10px;font-weight:800;font-size:12.5px}
+.av.ok{background:var(--salvia-cl);color:var(--bosque)}
+.av.go{background:var(--vino-cl);color:var(--vino)}
+.empty-state{text-align:center;color:var(--muted);padding:30px 16px}
+
+footer{text-align:center;color:var(--medio);font-weight:700;font-size:12px;padding:10px 16px 40px}
+.sig{display:block;font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:20px;font-weight:600;color:var(--bosque);margin-bottom:4px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);background:var(--bosque);color:#fff;padding:12px 18px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:all .25s;max-width:calc(100% - 32px);text-align:center;z-index:10}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:980px){ .kpis{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:760px){ .charts{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .btns .btn{flex:1 1 100%} .card-b{padding:14px} }
+</style>
+</head>
+<body>
+<header>
+  <div class="band1"><div class="eyebrow">MATVA ASESORES</div><h1>Concentrado de Producción</h1></div>
+  <div class="band2" id="periodLbl">PÓLIZAS PAGADAS · ACTIVIDAD DE LA SEMANA</div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <div class="card-h">Reportes del equipo <small id="countLbl">0 asesores</small></div>
+    <div class="card-b">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Agregar reportes">
+        <b>Arrastra aquí los Excel de tu equipo</b>
+        <p>o toca para elegirlos. Puedes seleccionar todos a la vez.</p>
+      </div>
+      <input type="file" id="file" accept=".xlsx" multiple hidden>
+      <div class="loaded" id="loaded"></div>
+      <p class="note" id="skipNote" hidden></p>
+    </div>
+  </section>
+
+  <div id="dash" hidden>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="charts">
+      <section class="card"><div class="card-h">Pólizas por asesor(a) <small>por instrumento</small></div><div class="card-b"><div class="chart-box tall" id="boxPolAs"><canvas id="chPolAs"></canvas></div></div></section>
+      <section class="card"><div class="card-h">Actividad de la semana <small>por asesor(a)</small></div><div class="card-b"><div class="chart-box tall" id="boxActAs"><canvas id="chActAs"></canvas></div></div></section>
+      <section class="card"><div class="card-h">Pólizas pagadas por mes</div><div class="card-b"><div class="chart-box"><canvas id="chMes"></canvas></div></div></section>
+      <section class="card"><div class="card-h">Pólizas por instrumento</div><div class="card-b"><div class="chart-box"><canvas id="chRamo"></canvas></div></div></section>
+    </div>
+
+    <section class="card">
+      <div class="card-h">Resumen por asesor(a) <small>ordenado por pólizas</small></div>
+      <div class="table-wrap"><table>
+        <thead id="thAs"></thead>
+        <tbody id="tbAs"></tbody><tfoot id="tfAs"></tfoot>
+      </table></div>
+    </section>
+
+    <section class="card" id="logrosCard">
+      <div class="card-h">Lo más importante de la semana <small>en palabras de tu equipo</small></div>
+      <div class="card-b" id="logros"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-h">Detalle de pólizas <small id="polCount"></small></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th style="text-align:left">Asesor(a)</th><th style="text-align:left">Cliente</th><th>Instrumento</th><th>Fecha de pago</th></tr></thead>
+        <tbody id="tbPol"></tbody>
+      </table></div>
+    </section>
+
+    <section class="card">
+      <div class="card-h">Excel para la promotoría</div>
+      <div class="card-b">
+        <p class="note" style="margin:0 0 14px">Incluye la vista general con las gráficas, el resumen por asesor(a), el detalle de pólizas y la actividad de la semana.</p>
+        <div class="btns">
+          <button class="btn btn-primary" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar concentrado</button>
+          <button class="btn btn-danger" id="clearBtn">Empezar nueva semana</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="card" id="emptyCard"><div class="empty-state">Agrega los reportes de tu equipo y aquí verás el concentrado con gráficas.</div></div>
+</main>
+
+<footer><span class="sig">El poder de diseñar legados</span>MATVA ASESORES · Concentrado de producción</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+(function(){
+  const FORMATO = 'MATVA-PRODUCCION-1';
+  const KEY = 'matva_concentrado_v1';
+  const META_MENSUAL = 2;
+  const INSTR = ['Imagina Ser', 'Vida Mujer', 'GMM', 'ORVI', 'Dotal', 'Otro'];
+  // Nombres de versiones anteriores → instrumento actual
+  const LEGACY = x => { const t = String(x||'').trim(); if (/^(ppr|retiro|imagina)/i.test(t)) return 'Imagina Ser'; if (/gastos|^gmm/i.test(t)) return 'GMM'; if (/^orvi/i.test(t)) return 'ORVI'; if (/^(total|dotal)$/i.test(t)) return 'Dotal'; if (/vida mujer/i.test(t)) return 'Vida Mujer'; return t; };
+
+  const RCOL = ['#557566','#8C4D58','#8FA89A','#3E5A50','#C99AA0','#D6C7B3'];
+  // Reportes enviados con la versión anterior (ramos) se agrupan aquí
+  const instOf = p => { const x = LEGACY(p.instrumento || p.ramo || 'Otro'); return INSTR.includes(x) ? x : 'Otro'; };
+  const instLabel = p => { const x = instOf(p); if (x !== 'Otro') return x; const raw = LEGACY(p.instrumento || p.ramo || ''); const det = p.otro || (raw && raw !== 'Otro' ? raw : ''); return det ? 'Otro: ' + det : 'Otro'; };
+  const ACOL = ['#3E5A50','#8FA89A','#C99AA0'];
+  const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const MESL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),3200); }
+  const dmy = iso => { const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; };
+  const fmt = iso => { const [y,m,d]=iso.split('-'); return Number(d)+' '+MES[m-1]+' '+y; };
+  const num = n => (Number(n)||0).toLocaleString('es-MX',{maximumFractionDigits:0});
+  const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const nice = s => { s = String(s||'').replace(/\s+/g,' ').trim(); return s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()) : s; };
+
+  let reports = [];
+  try { reports = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch(e){}
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(reports)); } catch(e){} };
+
+  /* ===== Carga de archivos ===== */
+  const drop = $('drop');
+  drop.addEventListener('click', () => $('file').click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } });
+  ['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  $('file').addEventListener('change', () => { addFiles($('file').files); $('file').value=''; });
+
+  async function readReport(file){
+    const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await file.arrayBuffer());
+    const ws = wb.getWorksheet('datos'); if (!ws) return null;
+    const d = JSON.parse(String(ws.getCell('A1').value)); return d && d.formato === FORMATO ? d : null;
+  }
+  async function addFiles(list){
+    if (typeof ExcelJS === 'undefined'){ toast('Revisa tu conexión a internet e intenta de nuevo.'); return; }
+    let ok = 0, upd = 0; const bad = [];
+    for (const f of Array.from(list)){
+      try {
+        const d = await readReport(f);
+        if (!d){ bad.push(f.name); continue; }
+        d.asesor = nice(d.asesor);
+        const i = reports.findIndex(r => norm(r.asesor) === norm(d.asesor));
+        if (i >= 0){ if (d.fechaReporte >= reports[i].fechaReporte) { reports[i] = d; upd++; } }
+        else { reports.push(d); ok++; }
+      } catch(e){ console.error(e); bad.push(f.name); }
+    }
+    persist(); render();
+    $('skipNote').hidden = !bad.length;
+    $('skipNote').textContent = bad.length ? 'Estos archivos no son reportes de Producción y no se agregaron: ' + bad.join(', ') : '';
+    toast((ok ? ok + (ok===1?' reporte agregado':' reportes agregados') : '') + (ok && upd ? ' · ' : '') + (upd ? upd + ' actualizado' + (upd===1?'':'s') : '') || 'Sin reportes nuevos');
+  }
+
+  /* ===== Cálculos ===== */
+  function compute(){
+    const rows = reports.map(r => {
+      const pols = r.polizas || [];
+      const porInst = {}; INSTR.forEach(x => porInst[x] = 0); pols.forEach(p => porInst[instOf(p)]++);
+      return { asesor:r.asesor, fecha:r.fechaReporte, n:pols.length, porInst, ci:r.semana.ci||0, cc:r.semana.cc||0, sol:r.semana.sol||0, logro:r.semana.logro||'', semana:r.semana, pols };
+    }).sort((a,b) => b.n - a.n || (b.ci+b.cc+b.sol) - (a.ci+a.cc+a.sol) || a.asesor.localeCompare(b.asesor));
+    const allPols = rows.flatMap(r => r.pols.map(p => ({ asesor:r.asesor, cliente:p.cliente||'', fecha:p.fecha, inst:instOf(p), label:instLabel(p) }))).sort((a,b) => a.asesor.localeCompare(b.asesor) || a.fecha.localeCompare(b.fecha));
+    const tot = { n:allPols.length, ci:0, cc:0, sol:0 };
+    rows.forEach(r => { tot.ci+=r.ci; tot.cc+=r.cc; tot.sol+=r.sol; });
+    const used = INSTR.filter(x => allPols.some(p => p.inst === x));
+    // semana más reportada
+    const wk = {}; reports.forEach(r => { const k=r.semana.inicio+'|'+r.semana.fin; wk[k]=(wk[k]||0)+1; });
+    const [semIni, semFin] = (Object.entries(wk).sort((a,b)=>b[1]-a[1])[0]||['|'])[0].split('|');
+    const periodoInicio = reports.map(r => r.periodoInicio).sort()[0] || '2026-07-01';
+    const corte = reports.map(r => r.fechaReporte).sort().slice(-1)[0] || '';
+    // meses
+    const meses = []; if (corte){ let [y,m] = periodoInicio.split('-').map(Number); const [cy,cm] = corte.split('-').map(Number);
+      while (y < cy || (y === cy && m <= cm)) { meses.push(y+'-'+String(m).padStart(2,'0')); m++; if (m>12){m=1;y++;} } }
+    const otherWeeks = reports.filter(r => r.semana.inicio !== semIni).map(r => r.asesor);
+    const mesCorte = corte.slice(0,7); tot.mes = allPols.filter(p => p.fecha.startsWith(mesCorte)).length;
+    const metaHoy = META_MENSUAL * Math.max(1, meses.length); tot.meta = metaHoy * rows.length;
+    rows.forEach(r => { r.meta = metaHoy; r.av = r.n / metaHoy; });
+    return { rows, allPols, tot, used, mesCorte, metaHoy, semIni, semFin, periodoInicio, corte, meses, otherWeeks };
+  }
+
+  /* ===== Pintar ===== */
+  const charts = {};
+  Chart.defaults.font.family = 'Manrope, system-ui, sans-serif';
+  Chart.defaults.color = '#7A746B';
+  const whiteBg = { id:'whiteBg', beforeDraw(c){ const x=c.ctx; x.save(); x.globalCompositeOperation='destination-over'; x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.restore(); } };
+  const valueLabels = { id:'valueLabels', afterDatasetsDraw(c, args, opts){ if (!opts || !opts.on) return; const x=c.ctx; x.save(); x.font='700 12px Manrope, sans-serif'; x.fillStyle='#2F3A36';
+      const horiz = c.options.indexAxis === 'y'; const last = c.data.datasets.length - 1;
+      c.data.labels.forEach((_, i) => { let total = 0; c.data.datasets.forEach((ds, j) => { if (c.isDatasetVisible(j)) total += Number(ds.data[i])||0; });
+        if (!total) return; const el = c.getDatasetMeta(last).data[i]; if (!el) return;
+        if (horiz){ x.textAlign='left'; x.textBaseline='middle'; x.fillText(total, el.x + 6, el.y); } else { x.textAlign='center'; x.textBaseline='bottom'; x.fillText(total, el.x, el.y - 4); } });
+      x.restore(); } };
+  function mk(id, cfg){ if (charts[id]) charts[id].destroy(); cfg.plugins = [whiteBg, valueLabels]; charts[id] = new Chart($(id), cfg); }
+  const gridOff = { grid:{ display:false } };
+  const short = s => { const p = s.split(' '); return p.length > 2 ? p[0] + ' ' + p[1] : s; };
+
+  function render(){
+    $('countLbl').textContent = reports.length + (reports.length === 1 ? ' asesor(a)' : ' asesores');
+    $('loaded').innerHTML = reports.slice().sort((a,b)=>a.asesor.localeCompare(b.asesor)).map(r => `<span class="tag">${esc(r.asesor)}<button title="Quitar" aria-label="Quitar a ${esc(r.asesor)}" data-rm="${esc(r.asesor)}">×</button></span>`).join('');
+    const has = reports.length > 0; $('dash').hidden = !has; $('emptyCard').hidden = has;
+    if (!has) { $('periodLbl').textContent = 'PÓLIZAS PAGADAS · ACTIVIDAD DE LA SEMANA'; return; }
+    const D = compute();
+    $('periodLbl').textContent = 'PÓLIZAS PAGADAS DEL ' + dmy(D.periodoInicio) + ' AL ' + dmy(D.corte) + '  ·  ACTIVIDAD DEL ' + dmy(D.semIni) + ' AL ' + dmy(D.semFin);
+
+    $('kpis').innerHTML = [
+      ['main', D.tot.n, 'Total de pólizas', 'de julio a la fecha'],
+      ['', D.tot.mes, 'Pólizas en ' + MESL[Number(D.mesCorte.slice(5))-1], 'mes en curso'],
+      ['', D.rows.filter(r => r.av >= 1).length + ' / ' + D.rows.length, 'Asesores en meta', D.metaHoy + ' pólizas a ' + MESL[Number(D.mesCorte.slice(5))-1].toLowerCase()],
+      ['', D.tot.ci, 'Citas iniciales', 'semana'],
+      ['', D.tot.cc, 'Citas de cierre', 'semana'],
+      ['', D.tot.sol, 'Solicitudes', 'semana']
+    ].map(([c,v,l,s]) => `<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div><div class="s">${esc(s)}</div></div>`).join('');
+
+    const labels = D.rows.map(r => short(r.asesor));
+    const h = Math.max(300, 60 + D.rows.length * 34);
+    $('boxPolAs').style.setProperty('--h', h + 'px'); $('boxActAs').style.setProperty('--h', h + 'px');
+    const usedRamos = D.used, col = x => RCOL[INSTR.indexOf(x)];
+    mk('chPolAs', { type:'bar', data:{ labels, datasets: usedRamos.map(x => ({ label:x, data:D.rows.map(r => r.porInst[x]), backgroundColor:col(x), borderRadius:3, maxBarThickness:22 })) },
+      options:{ indexAxis:'y', maintainAspectRatio:false, animation:false, scales:{ x:{ stacked:true, beginAtZero:true, ticks:{ precision:0 }, grid:{ color:'#EFE5D7' } }, y:{ stacked:true, ...gridOff } },
+        plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12 } }, valueLabels:{ on:true } }, layout:{ padding:{ right:24 } } } });
+    mk('chActAs', { type:'bar', data:{ labels, datasets:[['ci','Citas iniciales'],['cc','Citas de cierre'],['sol','Solicitudes']].map(([k,l],i) => ({ label:l, data:D.rows.map(r => r[k]), backgroundColor:ACOL[i], borderRadius:3, maxBarThickness:22 })) },
+      options:{ indexAxis:'y', maintainAspectRatio:false, animation:false, scales:{ x:{ stacked:true, beginAtZero:true, ticks:{ precision:0 }, grid:{ color:'#EFE5D7' } }, y:{ stacked:true, ...gridOff } },
+        plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12 } }, valueLabels:{ on:true } }, layout:{ padding:{ right:24 } } } });
+    mk('chMes', { type:'bar', data:{ labels:D.meses.map(m => MESL[Number(m.slice(5))-1]), datasets: usedRamos.map(x => ({ label:x, data:D.meses.map(m => D.allPols.filter(p => p.fecha.startsWith(m) && p.inst === x).length), backgroundColor:col(x), borderRadius:3, maxBarThickness:48 })) },
+      options:{ maintainAspectRatio:false, animation:false, scales:{ x:{ stacked:true, ...gridOff }, y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 }, grid:{ color:'#EFE5D7' } } },
+        plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12 } }, valueLabels:{ on:true } }, layout:{ padding:{ top:18 } } } });
+    const ramoTot = usedRamos.map(x => D.rows.reduce((t,r) => t + r.porInst[x], 0));
+    mk('chRamo', { type:'doughnut', data:{ labels: usedRamos.map((x,i) => x + ' (' + ramoTot[i] + ')'), datasets:[{ data:ramoTot, backgroundColor:usedRamos.map(x => col(x)), borderColor:'#fff', borderWidth:2 }] },
+      options:{ maintainAspectRatio:false, animation:false, cutout:'58%', plugins:{ legend:{ position:'right', labels:{ boxWidth:12 } } } } });
+
+    $('thAs').innerHTML = '<tr><th style="text-align:left">Asesor(a)</th><th>Pólizas<br>jul. a la fecha</th>' + D.used.map(x => `<th>${esc(x)}</th>`).join('') + '<th>Meta a ' + MESL[Number(D.mesCorte.slice(5))-1].toLowerCase() + '</th><th>Avance</th><th>Citas iniciales</th><th>Citas de cierre</th><th>Solicitudes</th><th>Reporte</th></tr>';
+    $('tbAs').innerHTML = D.rows.map(r => `<tr><td class="b">${esc(r.asesor)}</td><td class="n" style="font-size:16px;color:#1F3E43">${r.n}</td>${D.used.map(x => `<td class="n">${r.porInst[x] || ''}</td>`).join('')}<td class="n">${r.meta}</td><td class="n"><span class="av ${r.av >= 1 ? 'ok' : 'go'}">${Math.round(r.av*100)}%</span></td><td class="n">${r.ci}</td><td class="n">${r.cc}</td><td class="n">${r.sol}</td><td class="n" style="font-weight:600">${dmy(r.fecha)}</td></tr>`).join('');
+    $('tfAs').innerHTML = `<tr><td>TOTAL EQUIPO</td><td class="n" style="font-size:16px">${D.tot.n}</td>${D.used.map(x => `<td class="n">${D.allPols.filter(p => p.inst === x).length}</td>`).join('')}<td class="n">${D.tot.meta}</td><td class="n">${D.tot.meta ? Math.round(D.tot.n / D.tot.meta * 100) : 0}%</td><td class="n">${D.tot.ci}</td><td class="n">${D.tot.cc}</td><td class="n">${D.tot.sol}</td><td></td></tr>`;
+    const lg = D.rows.filter(r => r.logro);
+    $('logrosCard').hidden = !lg.length;
+    $('logros').innerHTML = lg.map(r => `<div class="quote"><b>${esc(r.asesor)}</b><p>${esc(r.logro)}</p></div>`).join('');
+    $('polCount').textContent = D.allPols.length + (D.allPols.length === 1 ? ' póliza' : ' pólizas');
+    $('tbPol').innerHTML = D.allPols.length ? D.allPols.map(p => `<tr><td class="b">${esc(p.asesor)}</td><td>${esc(p.cliente)}</td><td class="n" style="font-weight:600">${esc(p.label)}</td><td class="n" style="font-weight:600">${dmy(p.fecha)}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#5F6B6A">Sin pólizas registradas</td></tr>';
+    if (D.otherWeeks.length){ $('skipNote').hidden = false; $('skipNote').textContent = 'Ojo: ' + D.otherWeeks.join(', ') + ' reportó otra semana de actividad.'; }
+  }
+
+  $('loaded').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; reports = reports.filter(r => r.asesor !== b.dataset.rm); persist(); render(); });
+  $('clearBtn').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Toca otra vez para borrar los reportes'; setTimeout(()=>{ b.classList.remove('armed'); b.textContent='Empezar nueva semana'; },3500); return; }
+    b.classList.remove('armed'); b.textContent='Empezar nueva semana'; reports = []; persist(); render(); $('skipNote').hidden = true; toast('Listo para la nueva semana');
+  });
+
+  /* ===== Excel concentrado ===== */
+  $('dlBtn').addEventListener('click', async () => {
+    try {
+      const D = compute();
+      const C = { bosque:'FF3E5A50', medio:'FF557566', claro:'FFEFE5D7', hueso:'FFF7F1E8', line:'FFE2D3BF', ink:'FF2F3A36', muted:'FF7A746B', white:'FFFFFFFF', vino:'FF8C4D58' };
+      const font = (o={}) => Object.assign({ name:'Calibri', size:11, color:{argb:C.ink} }, o);
+      const fill = c => ({ type:'pattern', pattern:'solid', fgColor:{argb:c} });
+      const line = { style:'thin', color:{argb:C.line} };
+      const wb = new ExcelJS.Workbook(); wb.creator = 'MATVA Asesores'; wb.created = new Date();
+      const banner = (ws, n, t1, t2, t3) => { [[t1,C.bosque,font({bold:true,size:18,color:{argb:C.white}}),34],[t2,C.medio,font({bold:true,size:12,color:{argb:C.white}}),26],[t3,C.claro,font({italic:true,size:10})]].forEach(([t,bg,f,h],i) => { const r=i+1; ws.mergeCells(r,1,r,n); const c=ws.getCell(r,1); c.value=t; c.font=f; c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; for(let j=1;j<=n;j++) ws.getCell(r,j).fill=fill(bg); ws.getRow(r).height=h||22; }); };
+      const head = (ws, r, cols) => { cols.forEach((t,i) => { const c=ws.getCell(r,i+1); c.value=t; c.font=font({bold:true,size:10,color:{argb:C.white}}); c.fill=fill(C.bosque); c.alignment={horizontal:'center',vertical:'middle',wrapText:true}; }); ws.getRow(r).height=32; };
+      const stripe = (ws, r, n, i, leftCols=[]) => { for (let j=1;j<=n;j++){ const c=ws.getCell(r,j); c.fill=fill(i%2?C.claro:C.hueso); c.border={bottom:line}; if (!c.font || !c.font.bold) c.font=font({size:10.5}); c.alignment={vertical:'top',wrapText:true,horizontal:leftCols.includes(j)?'left':'center'}; } };
+      const totalRow = (ws, r, n) => { for (let j=1;j<=n;j++){ const c=ws.getCell(r,j); c.fill=fill(C.vino); c.font=font({bold:true,color:{argb:C.white}}); c.alignment={horizontal:j===1?'left':'center',vertical:'middle'}; } ws.getRow(r).height=24; };
+      const sub = 'Pólizas pagadas del ' + dmy(D.periodoInicio) + ' al ' + dmy(D.corte) + '  ·  Actividad del ' + dmy(D.semIni) + ' al ' + dmy(D.semFin) + '  ·  ' + D.rows.length + ' asesores reportaron';
+
+      const wv = wb.addWorksheet('Vista general', { views:[{ showGridLines:false }], pageSetup:{ orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0 } });
+      const wa = wb.addWorksheet('Actividad', { views:[{ showGridLines:false, state:'frozen', ySplit:4 }] });
+      const wp = wb.addWorksheet('Pólizas', { views:[{ showGridLines:false, state:'frozen', ySplit:4 }] });
+      // --- Pólizas (fuente)
+      wp.columns = [{width:32},{width:30},{width:26},{width:14},{width:14}];
+      banner(wp, 5, 'MATVA ASESORES | PRODUCCIÓN', 'DETALLE DE PÓLIZAS EMITIDAS Y PAGADAS', sub);
+      head(wp, 4, ['Asesor(a)','Cliente','Instrumento','Fecha de pago','Mes de pago']);
+      D.allPols.forEach((p,i) => { const r=5+i, [y,m,d]=p.fecha.split('-').map(Number);
+        wp.getRow(r).values = [p.asesor, p.cliente||null, p.label, new Date(Date.UTC(y,m-1,d)), MESL[m-1]];
+        stripe(wp, r, 5, i, [1,2]); wp.getCell(r,4).numFmt='dd/mm/yyyy'; });
+      const PL = Math.max(5, 4 + D.allPols.length);
+      if (D.allPols.length) wp.autoFilter = { from:'A4', to:'E'+PL };
+      const rngA = `'Pólizas'!$A$5:$A$${PL}`, rngC = `'Pólizas'!$C$5:$C$${PL}`, rngD = `'Pólizas'!$D$5:$D$${PL}`;
+
+      // --- Actividad
+      wa.columns = [{width:32},{width:14},{width:14},{width:14},{width:14},{width:60},{width:14}];
+      banner(wa, 7, 'MATVA ASESORES | PRODUCCIÓN', 'ACTIVIDAD DE LA SEMANA', 'Semana del lunes ' + dmy(D.semIni) + ' al domingo ' + dmy(D.semFin));
+      head(wa, 4, ['Asesor(a)','Citas iniciales','Citas de cierre','Solicitudes llenadas','Total actividad','Lo más importante de la semana','Fecha de reporte']);
+      D.rows.forEach((r,i) => { const x=5+i; const [y,m,d]=r.fecha.split('-').map(Number);
+        wa.getRow(x).values = [r.asesor, r.ci, r.cc, r.sol, { formula:`SUM(B${x}:D${x})`, result:r.ci+r.cc+r.sol }, r.logro||null, new Date(Date.UTC(y,m-1,d))];
+        stripe(wa, x, 7, i, [1,6]); wa.getCell(x,7).numFmt='dd/mm/yyyy'; wa.getCell(x,5).font=font({bold:true,color:{argb:C.bosque}}); });
+      const AL = 4 + D.rows.length, AT = AL + 1;
+      wa.getRow(AT).values = ['TOTAL EQUIPO', ...['B','C','D','E'].map((c,k) => ({ formula:`SUM(${c}5:${c}${AL})`, result:[D.tot.ci,D.tot.cc,D.tot.sol,D.tot.ci+D.tot.cc+D.tot.sol][k] })), null, null];
+      totalRow(wa, AT, 7);
+
+      // --- Vista general (primera hoja)
+      const U = D.used, NC = 2 + U.length + 6, L = n => { let t=''; while(n>0){ const r=(n-1)%26; t=String.fromCharCode(65+r)+t; n=Math.floor((n-1)/26); } return t; };
+      wv.columns = [{width:34},{width:15}].concat(U.map(() => ({width:13})), [{width:13},{width:13},{width:13},{width:13},{width:13},{width:12}]);
+      banner(wv, NC, 'MATVA ASESORES | PRODUCCIÓN', 'CONCENTRADO DEL EQUIPO', sub);
+      // tabla por asesor
+      wv.getCell(8,1).value = 'RESUMEN POR ASESOR(A)  ·  ordenado por pólizas'; wv.getCell(8,1).font = font({bold:true,color:{argb:C.bosque}});
+      head(wv, 9, ['Asesor(a)','Pólizas julio a la fecha', ...U, 'Citas iniciales','Citas de cierre','Solicitudes','Total actividad','Meta a ' + MESL[Number(D.mesCorte.slice(5))-1].toLowerCase(),'Avance']);
+      const cCI = 3 + U.length, ar = `'Actividad'!$A$5:$A$${AL}`;
+      D.rows.forEach((r,i) => { const x=10+i;
+        const vals = [r.asesor, { formula:`COUNTIF(${rngA},A${x})`, result:r.n }];
+        U.forEach(u => vals.push({ formula:`COUNTIFS(${rngA},$A${x},${rngC},"${u === 'Otro' ? 'Otro*' : u}")`, result:r.porInst[u] }));
+        vals.push({ formula:`SUMIF(${ar},A${x},'Actividad'!$B$5:$B$${AL})`, result:r.ci },
+                  { formula:`SUMIF(${ar},A${x},'Actividad'!$C$5:$C$${AL})`, result:r.cc },
+                  { formula:`SUMIF(${ar},A${x},'Actividad'!$D$5:$D$${AL})`, result:r.sol },
+                  { formula:`SUM(${L(cCI)}${x}:${L(cCI+2)}${x})`, result:r.ci+r.cc+r.sol },
+                  r.meta,
+                  { formula:`IF(${L(cCI+4)}${x}=0,0,B${x}/${L(cCI+4)}${x})`, result:r.av });
+        wv.getRow(x).values = vals;
+        stripe(wv, x, NC, i, [1]); wv.getRow(x).height = 20;
+        wv.getCell(x,2).font = font({bold:true,size:12,color:{argb:C.bosque}});
+        for (let j=3;j<3+U.length;j++) wv.getCell(x,j).numFmt = '0;-0;""';
+        const avc = wv.getCell(x, cCI+5); avc.numFmt = '0%'; avc.font = font({bold:true,color:{argb: r.av >= 1 ? C.bosque : C.vino}}); });
+      const VL = 9 + D.rows.length, VT = VL + 1;
+      const totRes = [D.tot.n, ...U.map(u => D.allPols.filter(p => p.inst === u).length), D.tot.ci, D.tot.cc, D.tot.sol, D.tot.ci+D.tot.cc+D.tot.sol, D.tot.meta];
+      wv.getCell(VT,1).value = 'TOTAL EQUIPO';
+      totRes.forEach((v,k) => { const c = L(k+2); wv.getCell(VT,k+2).value = { formula:`SUM(${c}10:${c}${VL})`, result:v }; });
+      wv.getCell(VT, NC).value = { formula:`IF(${L(NC-1)}${VT}=0,0,B${VT}/${L(NC-1)}${VT})`, result: D.tot.meta ? D.tot.n / D.tot.meta : 0 };
+      totalRow(wv, VT, NC); wv.getCell(VT, NC).numFmt = '0%';
+      // KPIs enlazados
+      const mesNom = MESL[Number(D.mesCorte.slice(5))-1], [my,mm] = D.mesCorte.split('-').map(Number);
+      const kp = [['Total de pólizas (julio a la fecha)', { formula:`B${VT}`, result:D.tot.n }],
+                  ['Pólizas en ' + mesNom, { formula:`COUNTIFS(${rngD},">="&DATE(${my},${mm},1),${rngD},"<"&DATE(${mm===12?my+1:my},${mm===12?1:mm+1},1))`, result:D.tot.mes }],
+                  ['Citas iniciales', { formula:`${L(cCI)}${VT}`, result:D.tot.ci }],
+                  ['Citas de cierre', { formula:`${L(cCI+1)}${VT}`, result:D.tot.cc }],
+                  ['Solicitudes', { formula:`${L(cCI+2)}${VT}`, result:D.tot.sol }]];
+      const rest = NC - 1, per = Math.floor(rest / 4); const kcols = [[1,1]]; let c0 = 2;
+      for (let k=0;k<4;k++){ const w = k < 3 ? per : rest - per*3; kcols.push([c0, c0 + w - 1]); c0 += w; }
+      kp.forEach(([l,v],i) => { const [a,b]=kcols[i]; if (b>a){ wv.mergeCells(5,a,5,b); wv.mergeCells(6,a,6,b); }
+        const c1=wv.getCell(5,a); c1.value=l.toUpperCase(); c1.font=font({bold:true,size:9,color:{argb:C.muted}}); c1.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        const c2=wv.getCell(6,a); c2.value=v; c2.font=font({bold:true,size:24,color:{argb:i===0?C.white:C.bosque}}); c2.alignment={horizontal:'center',vertical:'middle'};
+        for (let j=a;j<=b;j++){ const bg = i===0 ? C.bosque : C.claro; wv.getCell(5,j).fill=fill(bg); wv.getCell(6,j).fill=fill(bg); wv.getCell(6,j).border={bottom:{style:'medium',color:{argb:C.medio}}}; }
+        if (i===0) c1.font=font({bold:true,size:9,color:{argb:C.white}}); });
+      wv.getRow(5).height=26; wv.getRow(6).height=40;
+      // gráficas como imagen
+      let gr = VT + 3;
+      wv.getCell(gr - 1, 1).value = 'GRÁFICAS'; wv.getCell(gr - 1, 1).font = font({bold:true,size:12,color:{argb:C.bosque}});
+      for (const [id, title] of [['chPolAs','Pólizas por asesor(a)'],['chActAs','Actividad de la semana por asesor(a)'],['chMes','Pólizas pagadas por mes'],['chRamo','Pólizas por instrumento']]){
+        const ch = charts[id]; if (!ch) continue;
+        const cv = ch.canvas, w = 860, hgt = Math.round(w * cv.height / cv.width);
+        wv.getCell(gr,1).value = title; wv.getCell(gr,1).font = font({bold:true,color:{argb:C.medio}});
+        const img = wb.addImage({ base64: ch.toBase64Image('image/png', 1), extension:'png' });
+        wv.addImage(img, { tl:{ col:0, row:gr }, ext:{ width:w, height:hgt } });
+        gr += Math.ceil(hgt / 20) + 3;
+      }
+      wb.views = [{ activeTab:0, firstSheet:0, visibility:'visible' }];
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const [y,m,d] = (D.corte || '2026-01-01').split('-');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Concentrado_Produccion_MATVA_' + d + '.' + m + '.' + y.slice(2) + '.xlsx';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('Concentrado descargado ✓');
+    } catch(err){ console.error(err); toast('No se pudo generar el Excel.'); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
