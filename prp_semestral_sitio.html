@@ -250,9 +250,15 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
     <!-- ===== Enviar ===== -->
     <section class="view" data-view="enviar" hidden>
       <div class="card">
-        <h2>Envía tu reporte</h2>
-        <p style="margin:0 0 14px;color:var(--muted)">Descarga tu Excel y compártelo en el grupo de WhatsApp de la gerencia.</p>
-        <div class="btns"><button class="btn btn-primary" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar mi reporte</button></div>
+        <h2>Envía tu reporte <small id="sendWeek"></small></h2>
+        <div id="sendBox">
+          <p style="margin:0 0 14px;color:var(--muted)">Toca el botón y tu reporte le llega a tu gerente al instante.</p>
+          <div class="btns" style="margin-bottom:10px"><button class="btn btn-vino" id="sendBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg><span id="sendLbl">Enviar mi reporte</span></button></div>
+          <div class="status ok" id="sentOk" hidden></div>
+          <p style="margin:16px 0 10px;color:var(--muted);font-size:13.5px">¿Quieres una copia para ti?</p>
+        </div>
+        <p id="noSendTxt" style="margin:0 0 14px;color:var(--muted)">Descarga tu Excel y compártelo en el grupo de WhatsApp de la gerencia.</p>
+        <div class="btns"><button class="btn btn-ghost" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar mi reporte</button></div>
       </div>
       <div class="card">
         <h2>Tu información</h2>
@@ -303,6 +309,9 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
   const ICOL  = ['#557566', '#8C4D58', '#8FA89A', '#3E5A50', '#C99AA0', '#D6C7B3'];
   const ACTS = [['ci','Citas iniciales'],['cc','Citas de cierre'],['sol','Solicitudes llenadas']];
   const KEY = 'matva_produccion_v1';
+  // Envío automático: pega aquí la liga de tu Apps Script (termina en /exec)
+  const ENVIO_URL = 'https://script.google.com/macros/s/AKfycbzcoMJ0goK50Kct2tosKdXpORPj4IGsr7HJR81hlr3OeKkCPkjNLJ-t8QeqytyWyGI9KA/exec';
+  const ENVIO_CLAVE = 'MATVA-PRP-2026';
   const FORMATO = 'MATVA-PRODUCCION-1';
   const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const MESL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -362,7 +371,8 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
   Chart.defaults.font.family = 'Manrope, system-ui, sans-serif'; Chart.defaults.color = '#7A746B';
   function renderPanel(){
     const P = pols(), n = P.length;
-    $('hello').innerHTML = 'Hola, <b>' + esc((state.asesor||'').trim().split(/\s+/)[0] || '') + '</b>';
+    const nom = (state.asesor||'').trim().split(/\s+/)[0] || '';
+    $('hello').innerHTML = nom ? 'Hola, <b>' + esc(nom) + '</b>' : '';
     // anillo
     const C = 326.73, pct = Math.min(1, n / META_TOTAL);
     $('ringProg').style.strokeDashoffset = C;
@@ -567,6 +577,38 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
       polizas: P.map(p => ({ instrumento:instOf(p), otro:p.otro||'', cliente:p.cliente||'', fecha:p.fecha })) });
     return wb;
   }
+  /* ===== Envío automático (Drive + correo) ===== */
+  const semanaTexto = () => { const a = SEM_INI.split('-'), b = SEM_FIN.split('-'); return 'del ' + a[2] + '-' + a[1] + ' al ' + b[2] + '-' + b[1] + '-' + b[0]; };
+  function toB64(buf){ const bytes = new Uint8Array(buf); let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); }
+  function paintSent(){
+    $('sendBox').hidden = !ENVIO_URL; $('noSendTxt').hidden = !!ENVIO_URL;
+    $('sendWeek').textContent = fmtShort(SEM_INI) + ' – ' + fmtShort(SEM_FIN);
+    const env = (state.envios || {})[SEM_INI];
+    $('sentOk').hidden = !env;
+    if (env) { const d = new Date(env); $('sentOk').textContent = '✓ Enviado el ' + d.getDate() + ' ' + MES[d.getMonth()] + ' a las ' + d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'}); }
+    $('sendLbl').textContent = env ? 'Enviar de nuevo' : 'Enviar mi reporte';
+  }
+  let sending = false;
+  $('sendBtn').addEventListener('click', async () => {
+    if (sending) return;
+    if (!state.asesor.trim()){ toast('Escribe tu nombre.'); $('asesor').focus(); return; }
+    if (typeof ExcelJS === 'undefined'){ toast('Revisa tu conexión a internet e intenta de nuevo.'); return; }
+    sending = true; $('sendBtn').disabled = true; $('sendLbl').textContent = 'Enviando…';
+    try {
+      const buf = await (await buildXlsx()).xlsx.writeBuffer();
+      const P = pols();
+      const body = { clave: ENVIO_CLAVE, asesor: state.asesor.trim(), semanaTexto: semanaTexto(), nombreArchivo: fileName(), archivo: toB64(buf),
+        resumen: { polizas: P.length, meta: META_TOTAL, polizasMes: P.filter(p => p.fecha.startsWith(MES_ACTUAL)).length,
+          ci: +state.semana.ci || 0, cc: +state.semana.cc || 0, sol: +state.semana.sol || 0, logro: (state.semana.logro || '').trim() } };
+      const res = await fetch(ENVIO_URL, { method:'POST', body: JSON.stringify(body) });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'error');
+      state.envios = Object.assign({}, state.envios, { [SEM_INI]: new Date().toISOString() }); persist();
+      toast('¡Reporte enviado! Tu gerente ya lo tiene 🎉', true);
+    } catch(err){ console.error(err); toast('No se pudo enviar. Revisa tu internet e intenta de nuevo.'); }
+    sending = false; $('sendBtn').disabled = false; paintSent();
+  });
+
   $('dlBtn').addEventListener('click', async () => {
     if (!state.asesor.trim()){ toast('Escribe tu nombre.'); $('asesor').focus(); return; }
     if (typeof ExcelJS === 'undefined'){ toast('Revisa tu conexión a internet e intenta de nuevo.'); return; }
@@ -575,7 +617,7 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
       const blob = new Blob([buf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName();
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      toast('Reporte descargado ✓ Compártelo en el grupo');
+      toast(ENVIO_URL ? 'Excel descargado ✓' : 'Reporte descargado ✓ Compártelo en el grupo');
     } catch(err){ console.error(err); toast('No se pudo generar el Excel.'); }
   });
   $('impBtn').addEventListener('click', () => $('file').click());
@@ -600,6 +642,7 @@ footer small{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:
   });
 
   function paint(){
+    paintSent();
     ACTS.forEach(([k]) => $('a_'+k).value = state.semana[k] ?? '');
     $('logro').value = state.semana.logro || '';
     renderPol(); if (tab === 'panel') renderPanel();
